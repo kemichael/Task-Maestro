@@ -37,3 +37,6 @@ coverage/
 
 # ビルド成果物
 *.tgz
+
+# Claude Code の作業領域
+.claude/
