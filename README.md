@@ -1,115 +1,252 @@
-# Task Maestro
+<div align="center">
+  <img src="./public/logo.png" alt="Task Maestro" width="280" />
 
-Backlog をマスタとした、個人タスクの一元管理ツール (MVP)。
+  <p>
+    <strong>Backlog をマスタにした、個人タスク統合管理 Web アプリ</strong>
+  </p>
 
-## 概要
+  <p>
+    <img alt="Next.js" src="https://img.shields.io/badge/Next.js-15.1-black?logo=next.js" />
+    <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white" />
+    <img alt="React" src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white" />
+    <img alt="SQLite" src="https://img.shields.io/badge/SQLite-better--sqlite3-003B57?logo=sqlite&logoColor=white" />
+    <img alt="Docker" src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white" />
+  </p>
+</div>
 
-タスクの発生源 (Backlog / Slack / Meet 議事録 / 口頭・思いつき / Google Docs / Markdown) を **一つの画面で** 取り込み、Backlog のチケットとして管理する。「今日やるタスク」「カレンダーへの配置 (D&D)」までを 1 画面で完結する。
+---
 
-詳細は `docs/memo-flow/01_requirements.md` 以降を参照。
+## ✨ 概要
 
-## 技術スタック
+**Task Maestro** は、Backlog の自分が担当するチケットを軸に、日々のタスクを 1 画面で扱うための個人用 Web アプリです。
 
-- TypeScript + Next.js (App Router) — ローカル起動の Web アプリ
-- better-sqlite3 — ローカルキャッシュ・設定永続化
-- FullCalendar — タイムライン UI + D&D
-- googleapis / Backlog REST — 外部 API 連携
-- zod / pino — バリデーション・ログ
+- 🎯 **Backlog のチケットを「自分担当のみ」で横断取得**して一覧 / 編集
+- 🌅 **「今日やる」リスト** で本日着手すべきタスクを集約 (期限 ≤ 本日 ＋ 手動フラグ、完了は自動除外)
+- 📅 **Google カレンダーを横並び表示** + チケットをドラッグ&ドロップで予定化
+- ✏️ **Markdown 対応** のリッチテキストで本文・コメント編集
+- 🔗 **親子課題の関係** を視覚的にレイアウト
+- ⭐ **行内 ★ クリック** で「今日やる」を即トグル
+- 🔍 **キーワード / プロジェクト / ステータス (完了以外) / 優先度 / 期限 / 親子順** で絞り込み&並び替え
 
-## セットアップ
+完全ローカル動作、認証情報は `.env.local` に集約。追加サブスクリプション不要 (Backlog / Google API は既存契約のみ)。
 
-### A. Docker で起動 (推奨 — ローカルに Node.js 不要)
+---
 
-事前準備: Docker Desktop または Docker Engine + Docker Compose v2 がインストール済みであること。
+## 🖼️ 画面構成
+
+| 画面 | URL | 概要 |
+|------|-----|------|
+| ダッシュボード | `/` | 今日やるリスト + Google カレンダー (D&D 連携) |
+| チケット一覧 | `/issues` | Backlog チケットの横断検索・編集 (親子レイアウト、フィルタ、ソート) |
+| マニュアル | `/manual` | アプリ内マニュアル (操作チートシート、トラブルシューティング) |
+| 設定 | `/settings` | 環境変数の状態 + 利用者プロフィール / プロジェクト / ステータスマッピング |
+
+---
+
+## 🛠️ 技術スタック
+
+| 領域 | 採用 |
+|------|------|
+| フレームワーク | **Next.js 15 (App Router) + React 19** |
+| 言語 | TypeScript 5.7 |
+| 永続化 | **SQLite** (`better-sqlite3`) + ファイルベース・マイグレーション |
+| UI | カスタム CSS (デザイントークン化)、**FullCalendar** (カレンダー + D&D)、**@uiw/react-md-editor** (Markdown エディタ) |
+| バリデーション | **zod** |
+| ロガー | **pino** (機密値は redact 済) |
+| 外部 API | Backlog REST / Google Calendar / Google Drive / Google Docs |
+| テスト | **Vitest** (24 ケース) |
+| 配布 | **Docker** (Multi-stage production build + dev profile) |
+
+---
+
+## 🚀 セットアップ
+
+### A. Docker (推奨)
+
+事前準備: Docker Desktop または Docker Engine + Docker Compose v2。
 
 ```bash
-# 1. 環境変数を準備
-cp .env.example .env.local
-# `.env.local` を編集して Backlog / Google の認証情報を埋める
+# 1. クローン
+git clone https://github.com/kemichael/Task-Maestro.git
+cd Task-Maestro
 
-# 2-A. 開発モード (Next.js dev サーバ、コード変更でホットリロード)
-docker compose --profile dev up --build
+# 2. 環境変数を準備
+cp .env.example .env.local
+# `.env.local` を編集して Backlog / Google の認証情報を埋める (下記参照)
+
+# 3-A. 開発モード (Next.js dev、ホットリロード)
+docker compose --profile dev up -d --build
 # → http://localhost:3000
 
-# 2-B. 本番ビルド動作確認 (multi-stage build、最小ランタイム)
-docker compose --profile prod up --build
+# 3-B. 本番ビルド動作確認 (multi-stage, standalone output)
+docker compose --profile prod up -d --build
 ```
 
-データ (`data/task-maestro.sqlite`) はホストの `./data/` に永続化されます (bind mount)。初回起動時に `migrations/0001_init.sql` が自動適用されます。
+> ⚠️ **`.env.local` を変更したら `restart` ではなく必ず `force-recreate`** してください。
+> `docker compose --profile dev up -d --force-recreate`
+> (Docker Compose の env_file は restart では再読み込みされません。)
 
-#### コンテナ操作の例
-
-```bash
-# コンテナ内でテスト実行
-docker compose --profile dev exec task-maestro-dev npm test
-
-# 型チェック
-docker compose --profile dev exec task-maestro-dev npm run typecheck
-
-# 停止
-docker compose down
-```
-
-### B. ローカル直接起動 (Node.js 20+ がインストール済みの場合)
+### B. ローカル直接 (Node.js 20+)
 
 ```bash
-# 1. 依存解決
 npm install
-
-# 2. 環境変数の準備
-cp .env.example .env.local
-# `.env.local` を編集して Backlog / Google の認証情報を埋める
-
-# 3. 開発サーバ起動
+cp .env.example .env.local  # 編集
 npm run dev
-# http://localhost:3000 でアプリにアクセス
 ```
 
-初回起動時に `data/task-maestro.sqlite` が自動生成され、`migrations/0001_init.sql` が適用されます。
+> Windows で `better-sqlite3` のネイティブビルドに躓いたら、A の Docker 起動が確実です。
 
-> **Windows 環境について**: `better-sqlite3` がネイティブビルドを必要とするため、`node-gyp` の前提 (Python 3、Visual Studio Build Tools) が必要です。導入が手間な場合は **A. Docker 起動を推奨** します。
+---
 
-## 主要なスクリプト
+## 🔑 必要な認証情報
+
+`.env.local` に以下を設定します。詳細は `/manual` ページ末尾の「付録: 認証情報の取得方法」を参照。
+
+| キー | 用途 | 必須 |
+|------|------|:----:|
+| `BACKLOG_SPACE_DOMAIN` | 例: `mycompany.backlog.com` | ✅ |
+| `BACKLOG_API_KEY` | Backlog 個人 API キー | ✅ |
+| `GOOGLE_OAUTH_CLIENT_ID` | Google Cloud Console OAuth クライアント | ✅ |
+| `GOOGLE_OAUTH_CLIENT_SECRET` | 同上 | ✅ |
+| `GOOGLE_REFRESH_TOKEN` | OAuth Playground で取得 (スコープ: `calendar` / `drive.readonly` / `documents.readonly`) | ✅ |
+| `SLACK_TOKENS_JSON` | 将来拡張用 (MVP では未使用) | — |
+| `OPENAI_API_KEY` | 将来拡張用 (MVP では未使用) | — |
+| `CLAUDE_CODE_PATH` | Claude Code CLI を AI プロバイダに使う場合 | — |
+| `LOG_LEVEL` | `debug` / `info` / `warn` / `error` (既定は環境で自動切替) | — |
+
+設定済みかどうかは `/settings` 画面の認証情報セクションで確認できます。
+
+---
+
+## 📋 主な機能
+
+### ダッシュボード (`/`)
+
+- 「今日やる」リスト (期限 ≤ 本日 + 手動フラグ、完了は自動除外、プロジェクト/キーワード絞り込み + 期限/優先度/更新日ソート)
+- Google カレンダー (週ビュー既定、日/月ビュー切替可)
+- カレンダーへ **チケット D&D で 60 分予定作成** (説明欄に Backlog チケット URL 自動埋込)
+- 既存予定のドラッグ移動 / リサイズ / クリック削除
+- 「+ チケット作成」モーダル (Backlog へ直接作成)
+- 「Backlog から取り込み」(自分担当チケット + 親課題を補助取得)
+
+### チケット一覧 (`/issues`)
+
+- カードレイアウト、**子チケットは左にインデント + 親バッジ** (親子関係を視覚化)
+- 行頭 **★ クリックで「今日やる」即トグル**
+- フィルタ: キーワード / プロジェクト / ステータス (「完了以外」既定) / 優先度 / 期限 (期限切れ / 本日 / 今週 / 今月 / 期限なし)
+- 並び替え: 期限 / 優先度 / 更新日 / キー / **親子順**
+- 詳細パネルで Backlog の現在値を初期表示しつつ編集 (タイトル / 本文 / 期限 / 優先度 / 担当者 / カテゴリ / コメント追加)
+
+### Markdown サポート
+
+- 本文・コメントは Markdown エディタ (見出し / リスト / リンク / コード / テーブル等の GFM)
+- プレビュー切替も搭載
+- Backlog 側で Markdown フォーマットのプロジェクトと互換
+
+### 設定 (`/settings`)
+
+- 環境変数の設定状況を一覧 (`.env.local` 編集はファイル直編集)
+- 自分の Backlog ユーザを **「自動取得」ボタン** で `users/myself` API から取得
+- 対象 Backlog プロジェクト一覧
+- 「処理中」相当ステータスのプロジェクト × Status ID マッピング
+
+---
+
+## 🧪 開発スクリプト
 
 | コマンド | 用途 |
 |----------|------|
-| `npm run dev` | 開発サーバ起動 |
-| `npm run build` | 本番ビルド |
+| `npm run dev` | 開発サーバ起動 (http://localhost:3000) |
+| `npm run build` | 本番ビルド (standalone output) |
 | `npm run start` | 本番起動 |
-| `npm run typecheck` | TypeScript 型チェック |
-| `npm run lint` | ESLint |
-| `npm test` | Vitest 実行 |
+| `npm run typecheck` | TypeScript 型チェック (`tsc --noEmit`) |
+| `npm run lint` | ESLint (`next lint`) |
+| `npm test` | Vitest 単体テスト |
+| `docker compose --profile dev up -d --build` | Docker 開発モード |
+| `docker compose --profile prod up -d --build` | Docker 本番ビルド |
 
-## 環境変数
+---
 
-`.env.example` を参照。MVP で必須なのは以下:
+## 📁 ディレクトリ構成
 
-- `BACKLOG_SPACE_DOMAIN` / `BACKLOG_API_KEY` — Backlog API
-- `GOOGLE_OAUTH_CLIENT_ID` / `GOOGLE_OAUTH_CLIENT_SECRET` / `GOOGLE_REFRESH_TOKEN` — Google Calendar
+```
+.
+├── app/
+│   ├── api/                  # Route Handler (Backlog / Google Calendar / Today / Settings)
+│   ├── issues/               # チケット一覧
+│   ├── settings/             # 設定
+│   ├── manual/               # マニュアル (manual.md を SSR で MD レンダリング)
+│   ├── layout.tsx            # 共通ヘッダ + ロゴ
+│   └── page.tsx              # ダッシュボード
+├── components/
+│   ├── CalendarPane.tsx      # FullCalendar 統合 + D&D 受け
+│   ├── TodayList.tsx         # 今日やるリスト
+│   ├── IssueListClient.tsx   # チケット一覧 (カード + フィルタ + ソート)
+│   ├── EditTicketModal.tsx   # 編集モーダル (一覧 / 今日やる共通)
+│   ├── CreateTicketModal.tsx # 新規作成モーダル
+│   ├── MarkdownEditor.tsx    # Markdown エディタ
+│   ├── MarkdownView.tsx      # Markdown レンダリング
+│   └── SettingsForm.tsx      # 設定フォーム
+├── lib/
+│   ├── clients/              # 外部 API クライアント (backlog / googleCalendar / googleAuth / _common)
+│   ├── db/                   # SQLite アクセス層
+│   ├── services/             # ビジネスロジック (backlogIssueService / todayService)
+│   ├── types/                # 型定義 (backlog / ticket / settings / calendar / slack / meeting)
+│   ├── utils/                # 共通ユーティリティ (issueStatus)
+│   ├── validation/           # zod スキーマ
+│   ├── http/response.ts      # 統一エラーレスポンス
+│   ├── env.ts                # 環境変数ロード + 検証
+│   ├── errors.ts             # 例外クラス階層
+│   └── logger.ts             # pino ロガー (機密 redact)
+├── migrations/               # SQLite マイグレーション (0001_init / 0002_parent / 0003_categories)
+├── tests/                    # Vitest 単体テスト
+├── docs/memo-flow/           # 設計成果物 (要件 / 基本 / 詳細 / テスト / レビュー)
+├── public/logo.png           # アプリロゴ
+├── Dockerfile                # 本番用 multi-stage build
+├── Dockerfile.dev            # 開発用
+├── docker-compose.yml        # dev / prod プロファイル
+└── README.md                 # この本書
+```
 
-Slack / OpenAI / Claude Code CLI は MVP 後の拡張で使用する。
+---
 
-## 設計成果物
+## 📐 設計
 
-- `docs/memo-flow/01_requirements.md` — 要件定義
-- `docs/memo-flow/02_basic_design.md` — 基本設計 (BD-001〜010 + BD-100〜104)
-- `docs/memo-flow/03_detailed_design.md` — 詳細設計 (処理ID 単位)
+設計プロセスは [`docs/memo-flow/`](./docs/memo-flow/) に集約:
 
-## MVP スコープ
+- [`01_requirements.md`](./docs/memo-flow/01_requirements.md) — 要件定義 (FR-001〜011)
+- [`02_basic_design.md`](./docs/memo-flow/02_basic_design.md) — 基本設計 (BD-001〜010 + BD-100〜104)
+- [`03_detailed_design.md`](./docs/memo-flow/03_detailed_design.md) — 詳細設計 (処理ID 単位)
+- [`04_test_report.md`](./docs/memo-flow/04_test_report.md) — テストレポート
+- [`05_review_report.md`](./docs/memo-flow/05_review_report.md) — レビューレポート
 
-MVP として実装する範囲:
+MVP 範囲外の機能 (Slack メンション取り込み / Meet 議事録 / AI 抽出 / Google Docs 取り込み) は設計だけ済んでおり、将来追加します。
 
-- Backlog チケットの横断表示・編集 (BD-004)
-- 「今日やる」リスト (BD-005)
-- Google カレンダー連携 + D&D (BD-006)
-- 直接チケット作成 (BD-003)
-- ダッシュボード統合画面 (BD-104)
-- 設定画面 / 認証情報検証 (BD-100 / BD-008)
-- SQLite 永続化 / 共通基盤 (BD-103 / BD-102 / 型定義)
+---
 
-未実装 (将来追加):
+## 🛟 トラブルシューティング
 
-- Slack メンション取り込み (BD-001)
-- Meet 議事録取り込み (BD-002)
-- Google Docs / Markdown 読込 (BD-007)
-- AI 抽出共通モジュール / プロバイダ切替 (BD-101 / BD-009)
+詳細はアプリ内 [`/manual`](http://localhost:3000/manual) ページに記載。代表的なもの:
+
+| 症状 | 対処 |
+|------|------|
+| 環境変数が「未設定」のまま反映されない | `restart` ではなく `docker compose --profile dev up -d --force-recreate` |
+| Google Calendar が 403 (`insufficientPermissions`) | `GOOGLE_REFRESH_TOKEN` を 3 スコープ全部で取り直して再投入 |
+| Backlog 取り込みがスキップされる | 設定画面で「自分の Backlog ユーザ」を自動取得 → 保存 |
+| キャッシュチケットだけ全削除したい | `docker compose --profile dev exec task-maestro-dev node -e "..."` (マニュアル参照) |
+
+---
+
+## 🗺️ ロードマップ
+
+- ✅ MVP: Backlog 取り込み / 編集 / 今日やる / カレンダー D&D / 設定
+- ⏳ Slack メンション取り込み (BD-001)
+- ⏳ Google Meet 議事録 → ネクストアクション抽出 (BD-002)
+- ⏳ Google Docs / Markdown ファイル → AI 抽出 (BD-007)
+- ⏳ AI プロバイダ (OpenAI ⇄ Claude Code) 切替 (BD-009)
+
+---
+
+## 📄 ライセンス
+
+プライベートプロジェクト (個人利用)。ライセンス指定なし。
