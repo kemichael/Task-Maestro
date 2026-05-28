@@ -15,7 +15,12 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 COPY package.json package-lock.json* ./
-RUN npm ci --include=dev
+# 初回ビルドで package-lock.json が無い場合は npm install で生成、あれば npm ci で再現性確保
+RUN if [ -f package-lock.json ]; then \
+      npm ci --include=dev; \
+    else \
+      npm install --include=dev; \
+    fi
 
 # ============================================================
 # Stage 2: ビルド (Next.js standalone)
