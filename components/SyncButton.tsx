@@ -23,7 +23,18 @@ export function SyncButton({ label = "Backlog から取り込み" }: Props) {
         setError(body.message ?? `エラー (${res.status})`);
         return;
       }
-      const body = (await res.json()) as { fetched: number; inserted: number; updated: number };
+      const body = (await res.json()) as
+        | { skipped: "no_projects" | "self_user_id_missing" }
+        | { fetched: number; inserted: number; updated: number };
+      if ("skipped" in body) {
+        const map: Record<string, string> = {
+          no_projects: "対象 Backlog プロジェクトが未設定です。設定画面で登録してください。",
+          self_user_id_missing:
+            "自分の Backlog ユーザ ID が未設定です。設定画面で登録 (または「自動取得」) してください。",
+        };
+        setError(map[body.skipped] ?? `取り込みスキップ: ${body.skipped}`);
+        return;
+      }
       setMessage(`取得 ${body.fetched} 件 (新規 ${body.inserted} / 更新 ${body.updated})`);
       router.refresh();
     });

@@ -22,12 +22,21 @@ const workspaceSchema = z.object({
   workspaceName: z.string().optional(),
 });
 
+const backlogSelfSchema = z.object({
+  userId: z.number().int().positive(),
+  name: z.string().optional(),
+  loginId: z.string().optional(),
+});
+
 const settingsSchema = z.object({
   ai: z.object({
     provider: z.enum(["openai", "claudeCode"]),
     openaiModel: z.string().optional(),
   }),
-  backlog: z.object({ projects: z.array(projectSchema) }),
+  backlog: z.object({
+    projects: z.array(projectSchema),
+    self: backlogSelfSchema.optional(),
+  }),
   slack: z.object({ workspaces: z.array(workspaceSchema) }),
   statusMapping: z.array(statusMappingSchema),
 });

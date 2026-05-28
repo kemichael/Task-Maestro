@@ -1,7 +1,7 @@
 import "server-only";
 import { getEnv } from "../env";
 import { fetchJson, withRetry } from "./_common";
-import type { BacklogComment, BacklogIssue, BacklogProjectStatus } from "../types/backlog";
+import type { BacklogComment, BacklogIssue, BacklogProjectStatus, BacklogUser } from "../types/backlog";
 import type { TicketDraft } from "../types/ticket";
 import { logger } from "../logger";
 
@@ -68,6 +68,7 @@ export interface ListIssuesParams {
   count?: number;
   offset?: number;
   statusIds?: number[];
+  assigneeIds?: number[];
 }
 
 export async function listIssues(params: ListIssuesParams): Promise<BacklogIssue[]> {
@@ -77,12 +78,23 @@ export async function listIssues(params: ListIssuesParams): Promise<BacklogIssue
     count: params.count ?? 100,
     offset: params.offset ?? 0,
     ...(params.statusIds ? { statusId: params.statusIds } : {}),
+    ...(params.assigneeIds ? { assigneeId: params.assigneeIds } : {}),
   });
   const data = await withRetry(
     () => fetchJson<BacklogApiIssue[]>(url, { service: "backlog" }),
     { service: "backlog" },
   );
   return data.map(toBacklogIssue);
+}
+
+export async function getMyself(): Promise<BacklogUser> {
+  const base = getBacklogBaseUrl();
+  const url = withApiKey(`${base}/users/myself`);
+  const data = await withRetry(
+    () => fetchJson<BacklogUser>(url, { service: "backlog" }),
+    { service: "backlog" },
+  );
+  return data;
 }
 
 export interface CreateIssuePayload extends TicketDraft {}

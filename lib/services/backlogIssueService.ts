@@ -7,16 +7,21 @@ import type { TicketDraft } from "../types/ticket";
 import type { PatchIssueInput } from "../validation/ticketSchema";
 import { logger } from "../logger";
 
-export async function syncAllProjects(): Promise<{
-  inserted: number;
-  updated: number;
-  fetched: number;
-}> {
+export type SyncResult =
+  | { skipped: "no_projects" | "self_user_id_missing" }
+  | { inserted: number; updated: number; fetched: number };
+
+export async function syncAllProjects(): Promise<SyncResult> {
   const settings = getAppSettings();
   const projectIds = settings.backlog.projects.map((p) => p.projectId);
   if (projectIds.length === 0) {
-    logger.info("対象 Backlog プロジェクトが未設定のため同期をスキップ");
-    return { inserted: 0, updated: 0, fetched: 0 };
+    logger.warn("対象 Backlog プロジェクトが未設定のため同期をスキップ");
+    return { skipped: "no_projects" };
+  }
+  const selfUserId = settings.backlog.self?.userId;
+  if (!selfUserId || selfUserId <= 0) {
+    logger.warn("自分の Backlog ユーザ ID が未設定のため同期をスキップ");
+    return { skipped: "self_user_id_missing" };
   }
 
   let offset = 0;
@@ -24,7 +29,12 @@ export async function syncAllProjects(): Promise<{
   const collected: BacklogIssue[] = [];
 
   while (true) {
-    const page = await listIssues({ projectIds, count: pageSize, offset });
+    const page = await listIssues({
+      projectIds,
+      assigneeIds: [selfUserId],
+      count: pageSize,
+      offset,
+    });
     collected.push(...page);
     if (page.length < pageSize) break;
     offset += pageSize;
@@ -32,7 +42,10 @@ export async function syncAllProjects(): Promise<{
   }
 
   const { inserted, updated } = upsertIssues(collected);
-  logger.info({ inserted, updated, fetched: collected.length }, "Backlog 同期完了");
+  logger.info(
+    { inserted, updated, fetched: collected.length, selfUserId },
+    "Backlog 同期完了 (担当者フィルタ適用)",
+  );
   return { inserted, updated, fetched: collected.length };
 }
 

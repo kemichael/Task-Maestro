@@ -49,3 +49,12 @@ export interface BacklogProjectStatus {
   color: string;
   displayOrder: number;
 }
+
+export interface BacklogUser {
+  id: number;
+  userId?: string;
+  name: string;
+  roleType?: number;
+  lang?: string | null;
+  mailAddress?: string;
+}

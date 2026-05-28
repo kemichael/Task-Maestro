@@ -11,6 +11,12 @@ export interface BacklogProjectSetting {
   name?: string;
 }
 
+export interface BacklogSelfIdentity {
+  userId: number;
+  name?: string;
+  loginId?: string;
+}
+
 export interface StatusMapping {
   projectId: number;
   inProgressStatusId: number;
@@ -23,7 +29,10 @@ export interface SlackWorkspaceSetting {
 
 export interface AppSettings {
   ai: AISettings;
-  backlog: { projects: BacklogProjectSetting[] };
+  backlog: {
+    projects: BacklogProjectSetting[];
+    self?: BacklogSelfIdentity;
+  };
   slack: { workspaces: SlackWorkspaceSetting[] };
   statusMapping: StatusMapping[];
 }

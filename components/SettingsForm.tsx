@@ -34,6 +34,41 @@ export function SettingsForm({ initial }: Props) {
     });
   };
 
+  const fetchMyself = () => {
+    setError(null);
+    setMessage(null);
+    startTransition(async () => {
+      const res = await fetch("/api/backlog/myself");
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { message?: string };
+        setError(body.message ?? `自動取得に失敗 (${res.status})`);
+        return;
+      }
+      const user = (await res.json()) as {
+        userId: number;
+        name?: string;
+        loginId?: string;
+      };
+      setSettings({
+        ...settings,
+        backlog: {
+          ...settings.backlog,
+          self: { userId: user.userId, name: user.name, loginId: user.loginId },
+        },
+      });
+      setMessage(
+        `自分の Backlog ユーザを取得: ${user.name ?? "(no name)"} (ID: ${user.userId})。「設定を保存」で確定してください。`,
+      );
+    });
+  };
+
+  const clearMyself = () => {
+    setSettings({
+      ...settings,
+      backlog: { ...settings.backlog, self: undefined },
+    });
+  };
+
   const addProject = () => {
     setSettings({
       ...settings,
@@ -111,6 +146,60 @@ export function SettingsForm({ initial }: Props) {
             />
           </label>
         )}
+      </section>
+
+      <section>
+        <h3>自分の Backlog ユーザ (担当チケットの絞り込みに使用)</h3>
+        <p className="hint">
+          ここで設定したユーザ ID で「Backlog から取り込み」時に <code>assigneeId</code> フィルタが掛かります。未設定だと取り込みはスキップされます。
+        </p>
+        <div className="row">
+          <input
+            type="number"
+            placeholder="自分の Backlog ユーザ ID (数値)"
+            value={settings.backlog.self?.userId ?? ""}
+            onChange={(e) =>
+              setSettings({
+                ...settings,
+                backlog: {
+                  ...settings.backlog,
+                  self: e.target.value
+                    ? {
+                        userId: Number(e.target.value),
+                        name: settings.backlog.self?.name,
+                        loginId: settings.backlog.self?.loginId,
+                      }
+                    : undefined,
+                },
+              })
+            }
+          />
+          <input
+            type="text"
+            placeholder="表示名 (任意)"
+            value={settings.backlog.self?.name ?? ""}
+            onChange={(e) =>
+              setSettings({
+                ...settings,
+                backlog: {
+                  ...settings.backlog,
+                  self: settings.backlog.self
+                    ? { ...settings.backlog.self, name: e.target.value }
+                    : undefined,
+                },
+              })
+            }
+            disabled={!settings.backlog.self}
+          />
+          <button type="button" onClick={fetchMyself} disabled={pending} className="secondary-btn">
+            自動取得
+          </button>
+          {settings.backlog.self && (
+            <button type="button" onClick={clearMyself} disabled={pending} className="secondary-btn">
+              クリア
+            </button>
+          )}
+        </div>
       </section>
 
       <section>
