@@ -1,0 +1,40 @@
+{
+  "name": "task-maestro",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Backlog をベースにした個人タスク統合管理 (MVP)",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "next": "15.1.3",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "better-sqlite3": "^11.7.0",
+    "zod": "^3.24.1",
+    "pino": "^9.6.0",
+    "googleapis": "^144.0.0",
+    "@fullcalendar/core": "^6.1.15",
+    "@fullcalendar/react": "^6.1.15",
+    "@fullcalendar/daygrid": "^6.1.15",
+    "@fullcalendar/timegrid": "^6.1.15",
+    "@fullcalendar/interaction": "^6.1.15"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.10.5",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "typescript": "^5.7.2",
+    "pino-pretty": "^13.0.0",
+    "vitest": "^2.1.8",
+    "eslint": "^9.17.0",
+    "eslint-config-next": "15.1.3"
+  }
+}
