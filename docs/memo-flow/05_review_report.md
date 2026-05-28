@@ -93,9 +93,32 @@
 
 ## 総合判定
 
-- [ ] **このまま PR 作成可** — 要修正項目 4 件 (優先度高) を残したまま PR にして後続コミットで対応する場合
-- [ ] **要修正後に再レビュー** — 優先度高 4 件 + 中 4 件を本コミット内で潰してから PR
-- [x] **判断保留 (ユーザー確認待ち)** — 現状の評価
+- [x] **優先度高 4 件 を修正済み** (下記「修正履歴」参照)
+- [ ] PR 作成可 (中・低の指摘は後続コミット / 別 PR で対応)
+- [ ] 要再レビュー (任意)
+
+## 修正履歴 (2026-05-28 追加)
+
+| # | 指摘 | 対応コミット | 内容 |
+|---|------|-------------|------|
+| 1 | `fetchJson` の URL-encoded body 破壊 | `fix:fetchJson が文字列/URLSearchParams body を破壊しないよう修正` | `body` が `string` / `URLSearchParams` の場合は `JSON.stringify` せず、Content-Type の自動付与もスキップ。`fetchJson` の単体テスト 5 ケース、`withRetry` の単体テスト 3 ケースを追加 |
+| 2 | `markStarted` の projectId 解決ルート逸脱 + N+1 | `fix:markStartedをfindById経由でprojectId解決するよう修正` | `listTodayIssues().find(id)` を `findById(issueId)` に置換し、見つからないときは `NotFoundError` を投げる (HTTP 404 にマップ) |
+| 3 | カレンダー予定にチケット URL 未埋込 (FR-006 違反) | `fix:カレンダー予定の説明欄にBacklogチケットURLを埋め込み` | `POST /api/google/calendar/events` で `issueKey` を受け取り、`BACKLOG_SPACE_DOMAIN` から `https://{domain}/view/{issueKey}` を生成して description に追記。`CalendarPane.handleDrop` を更新 |
+| 4 | チケット編集 UI 未配線 (FR-004 違反) | `feat:チケット詳細パネルにタイトル/本文/期限/優先度/担当者/カテゴリ編集UIを追加` | `IssueListClient` 詳細パネルにタイトル・本文・期限・優先度・担当者 ID・カテゴリ ID・コメントの編集フォームを追加、`PATCH /api/backlog/issues/{id}` に差分のみ送信。状態遷移はダッシュボードの「今日やる」着手ボタンに集約する旨をヒントとして表示 |
+
+## 残り後対応 (優先度中・低)
+
+中:
+- `app/api/backlog/issues/[id]/route.ts` 他で issueId バリデーション失敗時に `ValidationError` を投げて 400 にする
+- `tests/services/todayService.sort.test.ts` のソート関数を `lib/services/todaySorter.ts` に純粋関数として切り出し、テストはそれを import
+- Backlog API キー URL クエリの漏出緩和 (ログ出力時 URL マスク)
+- `migration_history` テーブル定義を `0001_init.sql` に取り込み (`connection.ts` 側 DDL は削除)
+
+低:
+- pino redact のパス拡充 (`*.cause.*.refresh_token` 等)
+- README に主要 API 一覧と BD→ファイル対応表
+- `.env.example` に Google OAuth スコープと SLACK_TOKENS_JSON 検証手順
+- 統合テスト (Playwright や Route Handler 単体) 1〜2 本
 
 ## 観点別評価 (詳細出力)
 
