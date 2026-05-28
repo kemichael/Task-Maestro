@@ -17,6 +17,7 @@ interface BacklogApiIssue {
   dueDate?: string;
   updated: string;
   parentIssueId?: number | null;
+  category?: Array<{ id: number; name: string }>;
 }
 
 interface BacklogApiComment {
@@ -62,6 +63,7 @@ function toBacklogIssue(api: BacklogApiIssue): BacklogIssue {
     updatedAt: api.updated,
     todayFlag: false,
     parentIssueId: api.parentIssueId ?? undefined,
+    categories: api.category && api.category.length > 0 ? api.category : undefined,
   };
 }
 

@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { BacklogIssue } from "@/lib/types/backlog";
 import type { BacklogProjectSetting } from "@/lib/types/settings";
+import { isCompletedStatus } from "@/lib/utils/issueStatus";
 
 interface ParentRef {
   id: number;
@@ -181,18 +182,49 @@ export function TodayList({ issues, projects = [], parentMap = {} }: Props) {
             </button>
             <div className="today-body">
               {issue.parentIssueId && (
-                <span className="parent-ref" title="親課題">
-                  ↑ {parentMap[issue.parentIssueId]
-                    ? `${parentMap[issue.parentIssueId].issueKey}: ${parentMap[issue.parentIssueId].name}`
-                    : `#${issue.parentIssueId}`}
-                </span>
+                <div className="parent-chip parent-chip-today">
+                  <span className="parent-arrow">↳</span>
+                  {parentMap[issue.parentIssueId] ? (
+                    <>
+                      <span className="parent-key">{parentMap[issue.parentIssueId].issueKey}</span>
+                      <span className="parent-name">{parentMap[issue.parentIssueId].name}</span>
+                    </>
+                  ) : (
+                    <span className="parent-unresolved">#{issue.parentIssueId}</span>
+                  )}
+                </div>
               )}
-              <span className="issue-key">{issue.issueKey}</span>
-              <span className="issue-summary">{issue.summary}</span>
-              <span className="issue-meta">
-                {issue.dueDate ? `期限: ${issue.dueDate}` : "期限なし"} ・ {issue.status.name}
-                {issue.priority ? ` ・ ${issue.priority.name}` : ""}
-              </span>
+              <div className="today-title-row">
+                <span className="issue-key-chip">{issue.issueKey}</span>
+                <span className="issue-summary">{issue.summary}</span>
+              </div>
+              <div className="today-meta-row">
+                <span
+                  className={`badge ${
+                    isCompletedStatus(issue.status)
+                      ? "badge-done"
+                      : issue.status.name.includes("処理中")
+                        ? "badge-progress"
+                        : "badge-todo"
+                  }`}
+                >
+                  {issue.status.name}
+                </span>
+                {issue.priority && (
+                  <span
+                    className={`badge ${
+                      issue.priority.name === "高" || issue.priority.name === "High"
+                        ? "badge-high"
+                        : issue.priority.name === "低" || issue.priority.name === "Low"
+                          ? "badge-low"
+                          : "badge-normal"
+                    }`}
+                  >
+                    {issue.priority.name}
+                  </span>
+                )}
+                {issue.dueDate && <span className="meta-due">📅 {issue.dueDate}</span>}
+              </div>
             </div>
             <label className="today-flag">
               <input

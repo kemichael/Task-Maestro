@@ -43,7 +43,9 @@ function toDraft(issue: BacklogIssue): EditDraft {
     dueDate: issue.dueDate ?? "",
     priorityId: issue.priority ? String(issue.priority.id) : "",
     assigneeId: issue.assignee ? String(issue.assignee.id) : "",
-    categoryIds: "",
+    categoryIds: issue.categories && issue.categories.length > 0
+      ? issue.categories.map((c) => String(c.id)).join(",")
+      : "",
   };
 }
 
@@ -51,6 +53,21 @@ function priorityRank(priority?: BacklogIssue["priority"]): number {
   if (!priority) return 99;
   const map: Record<string, number> = { 高: 1, 中: 2, 低: 3, High: 1, Normal: 2, Low: 3 };
   return map[priority.name] ?? 99;
+}
+
+function priorityBadgeClass(priority?: BacklogIssue["priority"]): string {
+  if (!priority) return "badge badge-muted";
+  if (priority.name === "高" || priority.name === "High") return "badge badge-high";
+  if (priority.name === "低" || priority.name === "Low") return "badge badge-low";
+  return "badge badge-normal";
+}
+
+function statusBadgeClass(status: BacklogIssue["status"]): string {
+  if (isCompletedStatus(status)) return "badge badge-done";
+  const name = status.name;
+  if (name.includes("処理中") || name === "In Progress") return "badge badge-progress";
+  if (name.includes("処理済") || name === "Resolved") return "badge badge-resolved";
+  return "badge badge-todo";
 }
 
 function compare(a: BacklogIssue, b: BacklogIssue, key: SortKey, order: SortOrder): number {
@@ -84,7 +101,6 @@ export function IssueListClient({ issues, parentMap = {} }: Props) {
   // フィルタ
   const [keyword, setKeyword] = useState("");
   const [projectFilter, setProjectFilter] = useState<number | "">("");
-  // "" = 全 / "!completed" = 完了以外 / number = 個別 status_id
   const [statusFilter, setStatusFilter] = useState<number | "" | "!completed">("!completed");
   const [priorityFilter, setPriorityFilter] = useState<number | "">("");
   const [dueFilter, setDueFilter] = useState<"all" | "overdue" | "today" | "thisWeek" | "thisMonth" | "noDate">("all");
@@ -93,7 +109,6 @@ export function IssueListClient({ issues, parentMap = {} }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>("due");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
 
-  // 一覧から選択肢を派生
   const projectOptions = useMemo(() => {
     const map = new Map<number, string>();
     for (const i of issues) {
@@ -110,7 +125,6 @@ export function IssueListClient({ issues, parentMap = {} }: Props) {
     return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
   }, [issues]);
 
-  // フィルタ + ソート結果
   const filtered = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);
     const now = new Date();
@@ -155,7 +169,7 @@ export function IssueListClient({ issues, parentMap = {} }: Props) {
       .sort((a, b) => compare(a, b, sortKey, sortOrder));
   }, [issues, keyword, projectFilter, statusFilter, priorityFilter, dueFilter, sortKey, sortOrder]);
 
-  const selected = filtered.find((i) => i.id === selectedId) ?? issues.find((i) => i.id === selectedId) ?? null;
+  const selected = issues.find((i) => i.id === selectedId) ?? null;
 
   useEffect(() => {
     setDraft(selected ? toDraft(selected) : null);
@@ -169,10 +183,25 @@ export function IssueListClient({ issues, parentMap = {} }: Props) {
   const resetFilters = () => {
     setKeyword("");
     setProjectFilter("");
-    // デフォルトは「完了以外」(完了済みチケットでノイズを増やさない)
     setStatusFilter("!completed");
     setPriorityFilter("");
     setDueFilter("all");
+  };
+
+  const handleToggleToday = (issue: BacklogIssue) => {
+    const next = !issue.todayFlag;
+    startTransition(async () => {
+      const res = await fetch(`/api/today/${issue.id}/flag`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ flag: next }),
+      });
+      if (!res.ok) {
+        setError(`「今日やる」フラグ更新失敗 (${res.status})`);
+        return;
+      }
+      router.refresh();
+    });
   };
 
   const handleSave = () => {
@@ -191,14 +220,15 @@ export function IssueListClient({ issues, parentMap = {} }: Props) {
     if (draft.assigneeId !== currentAssigneeId) {
       patch.assigneeId = draft.assigneeId ? Number(draft.assigneeId) : null;
     }
-    if (draft.categoryIds.trim().length > 0) {
+    const currentCategoryIds = selected.categories?.map((c) => String(c.id)).join(",") ?? "";
+    if (draft.categoryIds !== currentCategoryIds) {
       const ids = draft.categoryIds
         .split(",")
         .map((s) => s.trim())
         .filter((s) => s.length > 0)
         .map((s) => Number(s))
         .filter((n) => Number.isFinite(n));
-      if (ids.length > 0) patch.categoryIds = ids;
+      patch.categoryIds = ids;
     }
     if (commentBody.trim().length > 0) patch.commentBody = commentBody;
     if (Object.keys(patch).length === 0) {
@@ -251,15 +281,15 @@ export function IssueListClient({ issues, parentMap = {} }: Props) {
     }
   };
 
-  const sortIndicator = (key: SortKey) => (sortKey === key ? (sortOrder === "asc" ? " ▲" : " ▼") : "");
+  const sortIndicator = (key: SortKey) => (sortKey === key ? (sortOrder === "asc" ? "▲" : "▼") : "");
 
   return (
     <div className="issue-list-layout">
       <div className="issue-list-main">
-        <div className="filter-bar">
+        <div className="filter-bar card">
           <input
             type="text"
-            placeholder="キーワード検索 (タイトル/キー/本文)"
+            placeholder="🔍 キーワード検索 (タイトル / キー / 本文)"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
             className="filter-keyword"
@@ -306,95 +336,147 @@ export function IssueListClient({ issues, parentMap = {} }: Props) {
             <option value="thisMonth">今月中</option>
             <option value="noDate">期限なし</option>
           </select>
-          <button type="button" className="secondary-btn" onClick={resetFilters}>
-            フィルタ解除
+          <button type="button" className="ghost-btn" onClick={resetFilters}>
+            クリア
           </button>
         </div>
         <div className="filter-summary">
-          {filtered.length} / {issues.length} 件
+          <span className="filter-count">{filtered.length}</span> / {issues.length} 件
         </div>
-        <table className="issue-table">
-          <thead>
-            <tr>
-              <th className="sortable" onClick={() => toggleSort("key")}>キー{sortIndicator("key")}</th>
-              <th>タイトル</th>
-              <th>親課題</th>
-              <th>状態</th>
-              <th className="sortable" onClick={() => toggleSort("priority")}>優先度{sortIndicator("priority")}</th>
-              <th>担当</th>
-              <th className="sortable" onClick={() => toggleSort("due")}>期限{sortIndicator("due")}</th>
-              <th className="sortable" onClick={() => toggleSort("updated")}>更新{sortIndicator("updated")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((issue) => {
-              const parent = issue.parentIssueId ? parentMap[issue.parentIssueId] : undefined;
-              return (
-                <tr
-                  key={issue.id}
-                  onClick={() => handleSelect(issue)}
-                  className={selectedId === issue.id ? "selected" : ""}
-                  draggable
-                  onDragStart={(e) => {
-                    e.dataTransfer.setData(
-                      "application/x-tm-issue",
-                      JSON.stringify({ id: issue.id, summary: issue.summary, issueKey: issue.issueKey }),
-                    );
+        {error && <div className="error-banner">{error}</div>}
+        <div className="issue-cards">
+          {filtered.length === 0 && (
+            <div className="empty-card card">
+              {issues.length === 0
+                ? "チケットがありません。「Backlog から取り込み」を実行してください。"
+                : "条件に一致するチケットがありません"}
+            </div>
+          )}
+          {filtered.map((issue) => {
+            const parent = issue.parentIssueId ? parentMap[issue.parentIssueId] : undefined;
+            const hasParent = !!issue.parentIssueId;
+            const isSelected = selectedId === issue.id;
+            return (
+              <div
+                key={issue.id}
+                className={`issue-card ${hasParent ? "issue-card-child" : ""} ${isSelected ? "is-selected" : ""}`}
+                onClick={() => handleSelect(issue)}
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.setData(
+                    "application/x-tm-issue",
+                    JSON.stringify({ id: issue.id, summary: issue.summary, issueKey: issue.issueKey }),
+                  );
+                }}
+              >
+                <button
+                  type="button"
+                  className={`star-btn ${issue.todayFlag ? "is-on" : ""}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleToggleToday(issue);
                   }}
+                  disabled={pending}
+                  title={issue.todayFlag ? "今日やるを解除" : "今日やるに追加"}
+                  aria-label={issue.todayFlag ? "今日やるを解除" : "今日やるに追加"}
                 >
-                  <td>{issue.issueKey}</td>
-                  <td>{issue.summary}</td>
-                  <td className="parent-cell">
-                    {issue.parentIssueId
-                      ? parent
-                        ? (
-                            <span title={parent.name}>
-                              <strong>{parent.issueKey}</strong>: {parent.name}
-                            </span>
-                          )
-                        : <span className="parent-unresolved">#{issue.parentIssueId}</span>
-                      : "—"}
-                  </td>
-                  <td>{issue.status.name}</td>
-                  <td>{issue.priority?.name ?? "—"}</td>
-                  <td>{issue.assignee?.name ?? "—"}</td>
-                  <td>{issue.dueDate ?? "—"}</td>
-                  <td>{issue.updatedAt.slice(0, 10)}</td>
-                </tr>
-              );
-            })}
-            {filtered.length === 0 && (
-              <tr>
-                <td colSpan={8}>
-                  {issues.length === 0
-                    ? "チケットがありません。「Backlog から取り込み」を実行してください。"
-                    : "条件に一致するチケットがありません"}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+                  {issue.todayFlag ? "★" : "☆"}
+                </button>
+                <div className="issue-card-body">
+                  {hasParent && (
+                    <div className="parent-chip">
+                      {parent ? (
+                        <>
+                          <span className="parent-arrow">↳</span>
+                          <span className="parent-key">{parent.issueKey}</span>
+                          <span className="parent-name">{parent.name}</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="parent-arrow">↳</span>
+                          <span className="parent-unresolved">#{issue.parentIssueId}</span>
+                        </>
+                      )}
+                    </div>
+                  )}
+                  <div className="issue-card-title-row">
+                    <span className="issue-key-chip">{issue.issueKey}</span>
+                    <span className="issue-card-title">{issue.summary}</span>
+                  </div>
+                  <div className="issue-card-meta">
+                    <span className={statusBadgeClass(issue.status)}>{issue.status.name}</span>
+                    {issue.priority && (
+                      <span className={priorityBadgeClass(issue.priority)}>{issue.priority.name}</span>
+                    )}
+                    {issue.dueDate && (
+                      <span className="meta-due">📅 {issue.dueDate}</span>
+                    )}
+                    {issue.assignee && (
+                      <span className="meta-assignee">👤 {issue.assignee.name}</span>
+                    )}
+                    {issue.categories && issue.categories.length > 0 && (
+                      <span className="meta-categories">
+                        {issue.categories.map((c) => (
+                          <span key={c.id} className="category-chip">
+                            {c.name}
+                          </span>
+                        ))}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        {/* ソートコントロール */}
+        <div className="sort-bar">
+          <span className="sort-label">並び替え:</span>
+          {(["due", "priority", "updated", "key"] as SortKey[]).map((k) => (
+            <button
+              key={k}
+              type="button"
+              className={`sort-btn ${sortKey === k ? "is-active" : ""}`}
+              onClick={() => toggleSort(k)}
+            >
+              {k === "due" ? "期限" : k === "priority" ? "優先度" : k === "updated" ? "更新日" : "キー"}{" "}
+              {sortIndicator(k)}
+            </button>
+          ))}
+        </div>
       </div>
       {selected && draft && (
-        <div className="issue-detail">
-          <h3>{selected.issueKey}</h3>
+        <div className="issue-detail card">
+          <div className="issue-detail-header">
+            <span className="issue-key-chip large">{selected.issueKey}</span>
+            <span className={statusBadgeClass(selected.status)}>{selected.status.name}</span>
+            <button
+              type="button"
+              className={`star-btn ${selected.todayFlag ? "is-on" : ""}`}
+              onClick={() => handleToggleToday(selected)}
+              disabled={pending}
+              title={selected.todayFlag ? "今日やるを解除" : "今日やるに追加"}
+            >
+              {selected.todayFlag ? "★" : "☆"}
+            </button>
+          </div>
           {selected.parentIssueId && (
-            <p className="parent-ref-detail">
-              ↑ 親課題:{" "}
-              {parentMap[selected.parentIssueId]
-                ? (
-                    <span>
-                      <strong>{parentMap[selected.parentIssueId].issueKey}</strong>{" "}
-                      {parentMap[selected.parentIssueId].name}
-                    </span>
-                  )
-                : <span className="parent-unresolved">#{selected.parentIssueId}</span>}
-            </p>
+            <div className="parent-chip parent-chip-detail">
+              <span className="parent-arrow">↳</span>
+              {parentMap[selected.parentIssueId] ? (
+                <>
+                  <span className="parent-key">{parentMap[selected.parentIssueId].issueKey}</span>
+                  <span className="parent-name">{parentMap[selected.parentIssueId].name}</span>
+                </>
+              ) : (
+                <span className="parent-unresolved">#{selected.parentIssueId}</span>
+              )}
+            </div>
           )}
           {error && <div className="error-banner">{error}</div>}
           {info && <div className="info-banner">{info}</div>}
-          <label>
-            タイトル
+          <label className="form-field">
+            <span className="form-field-label">タイトル</span>
             <input
               type="text"
               value={draft.summary}
@@ -406,53 +488,67 @@ export function IssueListClient({ issues, parentMap = {} }: Props) {
             <MarkdownEditor
               value={draft.description}
               onChange={(v) => setDraft({ ...draft, description: v })}
-              height={220}
+              height={240}
             />
           </div>
           <details className="markdown-preview-toggle">
             <summary>本文プレビュー</summary>
             <MarkdownView content={draft.description} />
           </details>
-          <label>
-            期限 (空欄で解除)
-            <input
-              type="date"
-              value={draft.dueDate}
-              onChange={(e) => setDraft({ ...draft, dueDate: e.target.value })}
-            />
-          </label>
-          <label>
-            優先度
-            <select
-              value={draft.priorityId}
-              onChange={(e) => setDraft({ ...draft, priorityId: e.target.value })}
-            >
-              <option value="">変更なし</option>
-              {PRIORITY_OPTIONS.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
+          <div className="form-row">
+            <label className="form-field">
+              <span className="form-field-label">期限</span>
+              <input
+                type="date"
+                value={draft.dueDate}
+                onChange={(e) => setDraft({ ...draft, dueDate: e.target.value })}
+              />
+            </label>
+            <label className="form-field">
+              <span className="form-field-label">優先度</span>
+              <select
+                value={draft.priorityId}
+                onChange={(e) => setDraft({ ...draft, priorityId: e.target.value })}
+              >
+                <option value="">変更なし</option>
+                {PRIORITY_OPTIONS.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <div className="form-row">
+            <label className="form-field">
+              <span className="form-field-label">担当者 ID (空欄で未割当)</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={draft.assigneeId}
+                onChange={(e) => setDraft({ ...draft, assigneeId: e.target.value })}
+              />
+            </label>
+            <label className="form-field">
+              <span className="form-field-label">カテゴリ ID (カンマ区切り)</span>
+              <input
+                type="text"
+                placeholder="例: 12,34"
+                value={draft.categoryIds}
+                onChange={(e) => setDraft({ ...draft, categoryIds: e.target.value })}
+              />
+            </label>
+          </div>
+          {selected.categories && selected.categories.length > 0 && (
+            <div className="current-categories">
+              <span className="form-field-label">現在のカテゴリ:</span>
+              {selected.categories.map((c) => (
+                <span key={c.id} className="category-chip">
+                  {c.id}: {c.name}
+                </span>
               ))}
-            </select>
-          </label>
-          <label>
-            担当者 ID (空欄で未割当)
-            <input
-              type="text"
-              inputMode="numeric"
-              value={draft.assigneeId}
-              onChange={(e) => setDraft({ ...draft, assigneeId: e.target.value })}
-            />
-          </label>
-          <label>
-            カテゴリ ID (カンマ区切りで追記)
-            <input
-              type="text"
-              placeholder="例: 12,34"
-              value={draft.categoryIds}
-              onChange={(e) => setDraft({ ...draft, categoryIds: e.target.value })}
-            />
-          </label>
+            </div>
+          )}
           <div className="form-field">
             <span className="form-field-label">コメント追加 (Markdown)</span>
             <MarkdownEditor
@@ -463,7 +559,7 @@ export function IssueListClient({ issues, parentMap = {} }: Props) {
             />
           </div>
           <div className="issue-detail-actions">
-            <button type="button" onClick={handleAddComment} disabled={pending || !commentBody.trim()} className="secondary-btn">
+            <button type="button" onClick={handleAddComment} disabled={pending || !commentBody.trim()} className="ghost-btn">
               コメントのみ追加
             </button>
             <button type="button" onClick={handleSave} disabled={pending} className="primary-btn">

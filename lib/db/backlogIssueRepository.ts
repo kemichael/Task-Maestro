@@ -23,6 +23,7 @@ function toBacklogIssue(row: BacklogIssueRow): BacklogIssue {
     updatedAt: row.updated_at,
     todayFlag: row.today_flag === 1,
     parentIssueId: row.parent_issue_id ?? undefined,
+    categories: row.categories_json ? (JSON.parse(row.categories_json) as BacklogIssue["categories"]) : undefined,
   };
 }
 
@@ -32,8 +33,9 @@ function upsertOne(issue: BacklogIssue): void {
     `INSERT INTO backlog_issue (
        id, project_id, issue_key, summary, description,
        status_id, status_name, priority_id, priority_name,
-       assignee_id, assignee_name, due_date, updated_at, cached_at, today_flag, parent_issue_id
-     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE((SELECT today_flag FROM backlog_issue WHERE id = ?), 0), ?)
+       assignee_id, assignee_name, due_date, updated_at, cached_at, today_flag,
+       parent_issue_id, categories_json
+     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE((SELECT today_flag FROM backlog_issue WHERE id = ?), 0), ?, ?)
      ON CONFLICT(id) DO UPDATE SET
        project_id = excluded.project_id,
        issue_key = excluded.issue_key,
@@ -48,7 +50,8 @@ function upsertOne(issue: BacklogIssue): void {
        due_date = excluded.due_date,
        updated_at = excluded.updated_at,
        cached_at = excluded.cached_at,
-       parent_issue_id = excluded.parent_issue_id`,
+       parent_issue_id = excluded.parent_issue_id,
+       categories_json = excluded.categories_json`,
   ).run(
     issue.id,
     issue.projectId,
@@ -66,6 +69,7 @@ function upsertOne(issue: BacklogIssue): void {
     new Date().toISOString(),
     issue.id,
     issue.parentIssueId ?? null,
+    issue.categories && issue.categories.length > 0 ? JSON.stringify(issue.categories) : null,
   );
 }
 

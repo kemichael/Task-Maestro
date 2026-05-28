@@ -16,6 +16,7 @@ export interface BacklogIssue {
   updatedAt: string;
   todayFlag: boolean;
   parentIssueId?: number;
+  categories?: BacklogIssueRef[];
 }
 
 export interface BacklogIssueRow {
@@ -35,6 +36,7 @@ export interface BacklogIssueRow {
   cached_at: string;
   today_flag: number;
   parent_issue_id: number | null;
+  categories_json: string | null;
 }
 
 export interface BacklogComment {
