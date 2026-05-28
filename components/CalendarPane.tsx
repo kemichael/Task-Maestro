@@ -42,7 +42,7 @@ export function CalendarPane() {
         body: JSON.stringify({
           title: `${issue.issueKey}: ${issue.summary}`,
           start: info.date.toISOString(),
-          description: `Backlog チケット: ${issue.issueKey}`,
+          issueKey: issue.issueKey,
         }),
       });
       if (!res.ok) throw new Error(`予定作成失敗 (${res.status})`);
