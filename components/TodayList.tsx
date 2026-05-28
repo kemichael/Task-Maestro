@@ -170,7 +170,15 @@ export function TodayList({ issues, projects = [], parentMap = {} }: Props) {
       {sorted.length === 0 && <div className="today-empty">条件に一致するタスクがありません</div>}
       <ul>
         {sorted.map((issue) => (
-          <li key={issue.id} className="today-item" draggable onDragStart={(e) => handleDragStart(e, issue)}>
+          <li
+            key={issue.id}
+            className="today-item"
+            draggable
+            data-issue-id={issue.id}
+            data-issue-key={issue.issueKey}
+            data-issue-summary={issue.summary}
+            onDragStart={(e) => handleDragStart(e, issue)}
+          >
             <button
               type="button"
               className="check-btn"

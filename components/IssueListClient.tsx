@@ -362,11 +362,15 @@ export function IssueListClient({ issues, parentMap = {} }: Props) {
                 className={`issue-card ${hasParent ? "issue-card-child" : ""} ${isSelected ? "is-selected" : ""}`}
                 onClick={() => handleSelect(issue)}
                 draggable
+                data-issue-id={issue.id}
+                data-issue-key={issue.issueKey}
+                data-issue-summary={issue.summary}
                 onDragStart={(e) => {
                   e.dataTransfer.setData(
                     "application/x-tm-issue",
                     JSON.stringify({ id: issue.id, summary: issue.summary, issueKey: issue.issueKey }),
                   );
+                  e.dataTransfer.effectAllowed = "copy";
                 }}
               >
                 <button

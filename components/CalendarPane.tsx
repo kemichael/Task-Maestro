@@ -31,10 +31,41 @@ export function CalendarPane() {
   const [error, setError] = useState<string | null>(null);
 
   const handleDrop = useCallback(async (info: DropArg) => {
-    const raw = info.dataTransfer?.getData("application/x-tm-issue");
-    if (!raw) return;
-    const issue = JSON.parse(raw) as DraggedIssue;
     setError(null);
+
+    let issue: DraggedIssue | null = null;
+
+    // 方法1: jsEvent.dataTransfer から取得 (HTML5 D&D)
+    const dt = (info.jsEvent as DragEvent | undefined)?.dataTransfer;
+    const raw = dt?.getData("application/x-tm-issue");
+    if (raw) {
+      try {
+        issue = JSON.parse(raw) as DraggedIssue;
+      } catch {
+        /* fall through to method 2 */
+      }
+    }
+
+    // 方法2: draggedEl の data-* 属性 fallback
+    if (!issue && info.draggedEl) {
+      const el = info.draggedEl as HTMLElement;
+      const id = Number(el.dataset.issueId);
+      if (Number.isFinite(id) && id > 0) {
+        issue = {
+          id,
+          issueKey: el.dataset.issueKey ?? "",
+          summary: el.dataset.issueSummary ?? "",
+        };
+      }
+    }
+
+    if (!issue || !issue.id) {
+      setError(
+        "ドラッグしたチケットの情報を読み取れませんでした。ページを再読み込みしてからもう一度お試しください。",
+      );
+      return;
+    }
+
     try {
       const res = await fetch("/api/google/calendar/events", {
         method: "POST",
@@ -45,7 +76,10 @@ export function CalendarPane() {
           issueKey: issue.issueKey,
         }),
       });
-      if (!res.ok) throw new Error(`予定作成失敗 (${res.status})`);
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { message?: string };
+        throw new Error(body.message ?? `予定作成失敗 (${res.status})`);
+      }
       calendarRef.current?.getApi().refetchEvents();
     } catch (e) {
       setError((e as Error).message);
