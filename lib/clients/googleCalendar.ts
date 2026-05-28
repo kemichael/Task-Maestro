@@ -29,11 +29,40 @@ function toCalendarEvent(api: NonNullable<Awaited<ReturnType<ReturnType<typeof g
   };
 }
 
+interface GoogleApiErrorShape {
+  code?: number;
+  message?: string;
+  errors?: Array<{ reason?: string; message?: string; domain?: string }>;
+  response?: { data?: { error?: { code?: number; message?: string; errors?: unknown[]; status?: string } } };
+}
+
 function mapGoogleError(error: unknown, op: string): ExternalApiError {
-  const e = error as { code?: number; message?: string };
+  const e = error as GoogleApiErrorShape;
   const status = e.code;
+  const reasons = e.errors?.map((x) => x.reason).filter(Boolean).join(",") ?? "";
+  const upstream = e.response?.data?.error;
+  const upstreamMsg = upstream?.message ?? e.message ?? "";
+  const upstreamStatus = upstream?.status ?? "";
+  logger.warn(
+    {
+      op,
+      status,
+      reasons,
+      upstreamStatus,
+      upstreamMsg,
+      message: e.message,
+    },
+    "Google Calendar API エラー",
+  );
+  const detail = [reasons, upstreamMsg].filter(Boolean).join(" | ");
   if (status === 401 || status === 403) {
-    return new ExternalApiError(`Google Calendar の認証に失敗: ${op}`, "auth", false, status, error);
+    return new ExternalApiError(
+      `Google Calendar の認証に失敗: ${op}${detail ? " (" + detail + ")" : ""}`,
+      "auth",
+      false,
+      status,
+      error,
+    );
   }
   if (status === 404) {
     return new ExternalApiError(`Google Calendar イベントが見つかりません: ${op}`, "notFound", false, 404, error);
@@ -42,7 +71,7 @@ function mapGoogleError(error: unknown, op: string): ExternalApiError {
     return new ExternalApiError(`Google Calendar のレート制限: ${op}`, "rateLimit", true, 429, error);
   }
   return new ExternalApiError(
-    `Google Calendar API エラー: ${op} ${e.message ?? ""}`,
+    `Google Calendar API エラー: ${op} ${upstreamMsg}`,
     "unknown",
     false,
     status,
