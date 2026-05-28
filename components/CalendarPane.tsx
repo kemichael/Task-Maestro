@@ -4,19 +4,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
-import interactionPlugin, { type DropArg } from "@fullcalendar/interaction";
+import interactionPlugin, { Draggable } from "@fullcalendar/interaction";
 import type {
   DateSelectArg,
   EventChangeArg,
   EventClickArg,
   EventInput,
+  EventReceiveArg,
 } from "@fullcalendar/core";
-
-interface DraggedIssue {
-  id: number;
-  summary: string;
-  issueKey: string;
-}
 
 async function fetchEvents(from: string, to: string): Promise<EventInput[]> {
   const res = await fetch(`/api/google/calendar/events?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`);
@@ -30,58 +25,57 @@ export function CalendarPane() {
   const calendarRef = useRef<FullCalendar | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleDrop = useCallback(async (info: DropArg) => {
-    setError(null);
-
-    let issue: DraggedIssue | null = null;
-
-    // 方法1: jsEvent.dataTransfer から取得 (HTML5 D&D)
-    const dt = (info.jsEvent as DragEvent | undefined)?.dataTransfer;
-    const raw = dt?.getData("application/x-tm-issue");
-    if (raw) {
-      try {
-        issue = JSON.parse(raw) as DraggedIssue;
-      } catch {
-        /* fall through to method 2 */
-      }
-    }
-
-    // 方法2: draggedEl の data-* 属性 fallback
-    if (!issue && info.draggedEl) {
-      const el = info.draggedEl as HTMLElement;
-      const id = Number(el.dataset.issueId);
-      if (Number.isFinite(id) && id > 0) {
-        issue = {
-          id,
-          issueKey: el.dataset.issueKey ?? "",
-          summary: el.dataset.issueSummary ?? "",
+  // FullCalendar の Draggable を初期化 (document.body を監視して .today-item / .issue-card を D&D 可能化)
+  useEffect(() => {
+    const draggable = new Draggable(document.body, {
+      itemSelector: ".today-item, .issue-card",
+      eventData: (eventEl) => {
+        const el = eventEl as HTMLElement;
+        const id = el.dataset.issueId ?? "";
+        const issueKey = el.dataset.issueKey ?? "";
+        const summary = el.dataset.issueSummary ?? "";
+        return {
+          title: `${issueKey}: ${summary}`,
+          duration: "01:00",
+          extendedProps: { issueId: Number(id), issueKey, summary },
         };
-      }
-    }
+      },
+    });
+    return () => draggable.destroy();
+  }, []);
 
-    if (!issue || !issue.id) {
-      setError(
-        "ドラッグしたチケットの情報を読み取れませんでした。ページを再読み込みしてからもう一度お試しください。",
-      );
+  // 外部からドロップされたチケットを Google カレンダー予定として作成
+  const handleEventReceive = useCallback(async (arg: EventReceiveArg) => {
+    setError(null);
+    const issueKey = String(arg.event.extendedProps.issueKey ?? "");
+    const summary = String(arg.event.extendedProps.summary ?? "");
+    const start = arg.event.start;
+    const end = arg.event.end;
+    if (!start || !issueKey) {
+      arg.event.remove();
+      setError("ドラッグデータの読み取りに失敗しました");
       return;
     }
-
     try {
       const res = await fetch("/api/google/calendar/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: `${issue.issueKey}: ${issue.summary}`,
-          start: info.date.toISOString(),
-          issueKey: issue.issueKey,
+          title: `${issueKey}: ${summary}`,
+          start: start.toISOString(),
+          end: end?.toISOString(),
+          issueKey,
         }),
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { message?: string };
         throw new Error(body.message ?? `予定作成失敗 (${res.status})`);
       }
+      // 仮のローカルイベントを削除し、サーバ取得で正規イベントに置き換える
+      arg.event.remove();
       calendarRef.current?.getApi().refetchEvents();
     } catch (e) {
+      arg.event.remove();
       setError((e as Error).message);
     }
   }, []);
@@ -168,7 +162,7 @@ export function CalendarPane() {
         editable
         selectable
         droppable
-        drop={handleDrop}
+        eventReceive={handleEventReceive}
         eventChange={handleEventChange}
         eventClick={handleEventClick}
         select={handleSelect}

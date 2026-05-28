@@ -112,14 +112,6 @@ export function TodayList({ issues, projects = [], parentMap = {} }: Props) {
     });
   };
 
-  const handleDragStart = (e: React.DragEvent, issue: BacklogIssue) => {
-    e.dataTransfer.setData(
-      "application/x-tm-issue",
-      JSON.stringify({ id: issue.id, summary: issue.summary, issueKey: issue.issueKey }),
-    );
-    e.dataTransfer.effectAllowed = "copy";
-  };
-
   if (issues.length === 0) {
     return (
       <div className="today-empty">
@@ -173,11 +165,9 @@ export function TodayList({ issues, projects = [], parentMap = {} }: Props) {
           <li
             key={issue.id}
             className="today-item"
-            draggable
             data-issue-id={issue.id}
             data-issue-key={issue.issueKey}
             data-issue-summary={issue.summary}
-            onDragStart={(e) => handleDragStart(e, issue)}
           >
             <button
               type="button"
