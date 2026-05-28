@@ -7,17 +7,23 @@ const slackTokenSchema = z.object({
   token: z.string().min(1),
 });
 
+// 空文字は未設定 (undefined) として扱う
+const optionalNonEmpty = z
+  .string()
+  .optional()
+  .transform((v) => (v && v.length > 0 ? v : undefined));
+
 const envSchema = z.object({
-  BACKLOG_SPACE_DOMAIN: z.string().min(1).optional(),
-  BACKLOG_API_KEY: z.string().min(1).optional(),
-  GOOGLE_OAUTH_CLIENT_ID: z.string().min(1).optional(),
-  GOOGLE_OAUTH_CLIENT_SECRET: z.string().min(1).optional(),
-  GOOGLE_REFRESH_TOKEN: z.string().min(1).optional(),
+  BACKLOG_SPACE_DOMAIN: optionalNonEmpty,
+  BACKLOG_API_KEY: optionalNonEmpty,
+  GOOGLE_OAUTH_CLIENT_ID: optionalNonEmpty,
+  GOOGLE_OAUTH_CLIENT_SECRET: optionalNonEmpty,
+  GOOGLE_REFRESH_TOKEN: optionalNonEmpty,
   SLACK_TOKENS_JSON: z
     .string()
     .optional()
     .transform((raw, ctx) => {
-      if (!raw || raw.trim() === "") return [];
+      if (!raw || raw.trim() === "" || raw.trim() === "[]") return [];
       try {
         const parsed = JSON.parse(raw);
         return z.array(slackTokenSchema).parse(parsed);
@@ -29,9 +35,9 @@ const envSchema = z.object({
         return z.NEVER;
       }
     }),
-  OPENAI_API_KEY: z.string().min(1).optional(),
-  CLAUDE_CODE_PATH: z.string().optional(),
-  LOG_LEVEL: z.string().optional(),
+  OPENAI_API_KEY: optionalNonEmpty,
+  CLAUDE_CODE_PATH: optionalNonEmpty,
+  LOG_LEVEL: optionalNonEmpty,
 });
 
 export type Env = z.infer<typeof envSchema>;
