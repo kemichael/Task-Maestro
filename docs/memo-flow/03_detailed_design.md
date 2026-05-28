@@ -237,15 +237,16 @@
 - **レイヤ**: Route Handler (`app/api/backlog/issues/sync/route.ts`)
 - **処理詳細**:
   1. POST 受信
-  2. 設定から対象プロジェクト ID 群を取得
-  3. `BacklogIssueService.syncAll(projectIds)` (BD-004-04) を呼出し
-  4. 件数を返却
+  2. 設定から対象プロジェクト ID 群と **自分の Backlog ユーザ ID (`settings.backlog.selfUserId`)** を取得
+  3. `BacklogIssueService.syncAllProjects()` (BD-004-04) を呼出し
+  4. `selfUserId` 未設定時は `{ skipped: "self_user_id_missing" }` を 200 で返却 (エラーではなく明示スキップ)
+  5. 件数を返却
 - **入力パラメータ**: なし
-- **戻り値**: `{ inserted, updated, deleted }`
+- **戻り値**: `{ inserted, updated, fetched } | { skipped: "self_user_id_missing" }`
 - **呼び出し元**: ダッシュボード「取り込み」、チケット一覧
 - **呼び出し先**: BD-004-04
 - **例外処理**: 通常通り
-- **ログ出力**: 件数 (INFO)
+- **ログ出力**: 件数 (INFO)、スキップ理由 (WARN)
 - **備考**: 並列度は 3 程度に制限し、Backlog のレートを尊重
 
 ### BD-004-02: チケット作成 / 編集 Route Handler
@@ -285,11 +286,13 @@
 
 - **レイヤ**: Service (`lib/services/backlogIssueService.ts`)
 - **処理詳細**:
-  1. `syncAll(projectIds)` — 各プロジェクトについて `GET /issues?projectId[]=...&count=100&offset=...` でページング取得
-  2. 取得結果を `backlogIssueRepository.upsertMany()` に渡す
-  3. ローカルキャッシュにあって Backlog 側に無いものは `deletedFlag` を立てる (or 物理削除)
-  4. `create(draft)` — `POST /issues` 呼出し → 結果を `upsertOne()`
-  5. `update(id, patch)` — `PATCH /issues/{id}` 呼出し → 結果を `upsertOne()`
+  1. `syncAllProjects()` — 設定 (BD-100) から `backlog.projects[]` と **`backlog.selfUserId`** を取得
+  2. `selfUserId` 未設定なら `{ skipped: "self_user_id_missing" }` を返して終了
+  3. 各プロジェクトについて `GET /issues?projectId[]=...&assigneeId[]=<selfUserId>&count=100&offset=...` でページング取得 (担当者フィルタ)
+  4. 取得結果を `backlogIssueRepository.upsertMany()` に渡す
+  5. ローカルキャッシュにあって Backlog 側に無いものは `deletedFlag` を立てる (or 物理削除)
+  6. `create(draft)` — `POST /issues` 呼出し → 結果を `upsertOne()`
+  7. `update(id, patch)` — `PATCH /issues/{id}` 呼出し → 結果を `upsertOne()`
 - **入力パラメータ**: 各メソッド固有
 - **戻り値**: 件数 / `BacklogIssue`
 - **呼び出し元**: BD-004-01、BD-004-02、BD-004-05、BD-005、BD-006
@@ -785,8 +788,9 @@
 - **レイヤ**: Client (`lib/clients/backlog.ts`)
 - **処理詳細**:
   1. ベース URL は `https://${BACKLOG_SPACE_DOMAIN}/api/v2`、認証は `apiKey` クエリパラメータ
-  2. `listIssues({ projectIds, count, offset })`、`createIssue(payload)`、`patchIssue(id, payload)`、`addComment(id, body)`、`listStatuses(projectId)`
-  3. レスポンスは型変換層で `BacklogIssue` に整形
+  2. `listIssues({ projectIds, count, offset, statusIds?, assigneeIds? })`、`createIssue(payload)`、`patchIssue(id, payload)`、`addComment(id, body)`、`listProjectStatuses(projectId)`、`getMyself()`
+  3. `getMyself()` は `GET /users/myself` で本人情報を取得 (BD-010 自動取得用)
+  4. レスポンスは型変換層で `BacklogIssue` / `BacklogUser` に整形
 - **入力パラメータ**: 各メソッド固有
 - **戻り値**: 各レスポンス
 - **呼び出し元**: BD-001-02、BD-004 系、BD-005-02
