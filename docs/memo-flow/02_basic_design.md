@@ -101,16 +101,19 @@
 
 - **対応する要件**: FR-004
 - **区分**: 機能 (API + 画面)
-- **概要**: 複数プロジェクトのチケットを横断取得し、一覧・編集する
+- **概要**: 複数プロジェクトのチケットを横断取得し、一覧・編集する。**取得は自分担当のチケットに限定**
 - **入力**:
   - 設定で指定された Backlog プロジェクト ID 群
+  - 設定で保持する **自分の Backlog ユーザ ID** (BD-010 と連携)
   - 利用者の「取り込み」ボタン押下、フィルタ操作、編集操作
 - **処理概要**:
   1. `POST /api/backlog/issues/sync` で対象プロジェクト群のチケットを取得
-  2. SQLite `backlog_issue` テーブルに UPSERT (キャッシュ)
-  3. 一覧画面 (BD-203) で表示・フィルタ・ソート
-  4. 編集時は `PATCH /api/backlog/issues/{id}` で Backlog API を呼び出し、ローカルキャッシュも更新
-  5. 編集対象項目: ステータス・期限・タイトル・本文・担当者・カテゴリ・優先度・コメント追加
+  2. 取得時に `assigneeId = <自分の Backlog ユーザ ID>` をフィルタとして Backlog API に渡す
+  3. 自分の Backlog ユーザ ID が未設定の場合は同期をスキップし、`skipped: "self_user_id_missing"` を含むレスポンスを返す
+  4. SQLite `backlog_issue` テーブルに UPSERT (キャッシュ)
+  5. 一覧画面 (BD-203) で表示・フィルタ・ソート
+  6. 編集時は `PATCH /api/backlog/issues/{id}` で Backlog API を呼び出し、ローカルキャッシュも更新
+  7. 編集対象項目: ステータス・期限・タイトル・本文・担当者・カテゴリ・優先度・コメント追加
 - **出力**: チケット一覧、編集結果
 - **連携先**: BD-005 (今日やる)、BD-006 (カレンダー)、BD-008、BD-102、BD-103
 - **データストア**: SQLite テーブル `backlog_issue` (id, project_id, key, summary, description, status_id, status_name, priority_id, assignee_id, due_date, updated_at, cached_at, today_flag)
@@ -228,14 +231,15 @@
 - **対応する要件**: FR-010
 - **区分**: 共通 (初期設定)
 - **概要**: Slack/Google/Backlog 各サービスにおける利用者本人のユーザ ID と名前を設定保持する
-- **入力**: 利用者の初期設定画面入力
+- **入力**: 利用者の初期設定画面入力、または Backlog `users/myself` API による自動取得
 - **処理概要**:
   1. 設定画面 (BD-100) の「利用者プロフィール」セクションで以下を手動登録:
      - Slack: 各ワークスペースの User ID (`Uxxxxxxx`)
      - Google: メールアドレス + 表示名
      - Backlog: User ID (数値) + 表示名
-  2. SQLite `user_identity` テーブルに保存
-  3. BD-001 (自分宛メンション識別)、BD-002 (議事録の自分のネクストアクション抽出)、BD-006 (カレンダー所有者照合) で参照
+  2. Backlog は **「自動取得」ボタン** で `POST /api/backlog/myself` を叩き、`users/myself` の結果を入力欄に反映する
+  3. 設定保存時は `settings.backlog.selfUserId` (簡易保存) または SQLite `user_identity` テーブルに保存
+  4. BD-001 (自分宛メンション識別)、BD-002 (議事録の自分のネクストアクション抽出)、**BD-004 (担当チケット絞り込み)**、BD-006 (カレンダー所有者照合) で参照
 - **出力**: 利用者識別情報
 - **連携先**: BD-001、BD-002、BD-006
 - **データストア**: SQLite `user_identity` (service, identifier, display_name)
