@@ -1,0 +1,39 @@
+# Node / Next.js
+node_modules/
+.next/
+out/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# 環境変数 (Q8: .env + gitignore 方針)
+.env
+.env.local
+.env.*.local
+
+# ローカル DB (BD-103)
+data/
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+
+# ログ
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# テストカバレッジ
+coverage/
+.nyc_output/
+
+# ビルド成果物
+*.tgz
