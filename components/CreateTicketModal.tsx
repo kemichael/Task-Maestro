@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { TicketDraft } from "@/lib/types/ticket";
 import type { BacklogProjectSetting } from "@/lib/types/settings";
+import { MarkdownEditor } from "./MarkdownEditor";
 
 interface Props {
   open: boolean;
@@ -85,10 +86,15 @@ export function CreateTicketModal({ open, onClose, projects, initial }: Props) {
               maxLength={255}
             />
           </label>
-          <label>
-            本文
-            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={6} />
-          </label>
+          <div className="form-field">
+            <label htmlFor="ticket-body">本文 (Markdown)</label>
+            <MarkdownEditor
+              value={description}
+              onChange={setDescription}
+              placeholder="Markdown 形式で本文を入力できます…"
+              height={220}
+            />
+          </div>
           <label>
             優先度
             <select value={priority ?? ""} onChange={(e) => setPriority((e.target.value || undefined) as TicketDraft["priority"])}>

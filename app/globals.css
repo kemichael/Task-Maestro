@@ -33,6 +33,14 @@ a {
   font-weight: 700;
   font-size: 18px;
   color: #2563eb;
+  display: inline-flex;
+  align-items: center;
+}
+
+.brand-logo {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
 }
 
 .app-header .nav {
@@ -410,4 +418,189 @@ button:disabled {
 .settings-actions {
   display: flex;
   justify-content: flex-end;
+}
+
+/* --- フィルタバー (チケット一覧) --- */
+.issue-list-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 12px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.filter-bar input,
+.filter-bar select {
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.filter-keyword {
+  min-width: 240px;
+  flex: 1;
+}
+
+.filter-summary {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.issue-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.issue-table th.sortable:hover {
+  background: #f3f4f6;
+}
+
+/* --- 今日やるコントロール --- */
+.today-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.today-controls .today-search {
+  flex: 1;
+  min-width: 120px;
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.today-controls select {
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.today-controls .order-btn {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+/* --- Markdown エディタ / ビュー --- */
+.markdown-editor-wrapper {
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.markdown-editor-wrapper .w-md-editor {
+  box-shadow: none;
+}
+
+.markdown-body {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #1f2937;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3 {
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+
+.markdown-body pre {
+  background: #f3f4f6;
+  padding: 8px;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+.markdown-body code {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+
+.markdown-body table {
+  border-collapse: collapse;
+  margin: 0.5em 0;
+}
+
+.markdown-body table th,
+.markdown-body table td {
+  border: 1px solid #e5e7eb;
+  padding: 4px 8px;
+}
+
+.markdown-body blockquote {
+  border-left: 3px solid #d1d5db;
+  padding-left: 12px;
+  color: #4b5563;
+  margin-left: 0;
+}
+
+.markdown-body a {
+  color: #2563eb;
+}
+
+.markdown-empty {
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+.markdown-preview-toggle {
+  margin: 4px 0 12px;
+  padding: 4px 8px;
+  border: 1px dashed #d1d5db;
+  border-radius: 6px;
+  background: #fafafa;
+  font-size: 12px;
+}
+
+.markdown-preview-toggle summary {
+  cursor: pointer;
+  color: #4b5563;
+}
+
+.markdown-preview-toggle[open] summary {
+  margin-bottom: 8px;
+}
+
+/* --- フォームフィールド共通 --- */
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #374151;
+}
+
+.form-field-label {
+  font-size: 13px;
+  color: #374151;
+}
+
+/* --- マニュアル --- */
+.manual-page {
+  max-width: 880px;
+}
+
+.manual-page .markdown-body {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 24px;
 }

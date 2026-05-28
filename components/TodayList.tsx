@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { BacklogIssue } from "@/lib/types/backlog";
 
@@ -8,11 +8,52 @@ interface Props {
   issues: BacklogIssue[];
 }
 
+type SortKey = "due" | "priority" | "updated";
+type SortOrder = "asc" | "desc";
+
+function priorityRank(priority?: BacklogIssue["priority"]): number {
+  if (!priority) return 99;
+  const map: Record<string, number> = { 高: 1, 中: 2, 低: 3, High: 1, Normal: 2, Low: 3 };
+  return map[priority.name] ?? 99;
+}
+
+function compareIssues(a: BacklogIssue, b: BacklogIssue, key: SortKey, order: SortOrder): number {
+  const sign = order === "asc" ? 1 : -1;
+  switch (key) {
+    case "due": {
+      const av = a.dueDate ?? "9999-99-99";
+      const bv = b.dueDate ?? "9999-99-99";
+      return av.localeCompare(bv) * sign;
+    }
+    case "priority":
+      return (priorityRank(a.priority) - priorityRank(b.priority)) * sign;
+    case "updated":
+      return a.updatedAt.localeCompare(b.updatedAt) * sign;
+  }
+}
+
 export function TodayList({ issues }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [checking, setChecking] = useState<number | null>(null);
+
+  const [sortKey, setSortKey] = useState<SortKey>("due");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+  const [keyword, setKeyword] = useState("");
+
+  const sorted = useMemo(() => {
+    const filtered = keyword
+      ? issues.filter((i) => {
+          const k = keyword.toLowerCase();
+          return (
+            i.summary.toLowerCase().includes(k) ||
+            i.issueKey.toLowerCase().includes(k)
+          );
+        })
+      : issues;
+    return [...filtered].sort((a, b) => compareIssues(a, b, sortKey, sortOrder));
+  }, [issues, sortKey, sortOrder, keyword]);
 
   const handleCheck = (issueId: number) => {
     setError(null);
@@ -60,9 +101,32 @@ export function TodayList({ issues }: Props) {
 
   return (
     <div className="today-list">
+      <div className="today-controls">
+        <input
+          type="text"
+          placeholder="キーワード"
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+          className="today-search"
+        />
+        <select value={sortKey} onChange={(e) => setSortKey(e.target.value as SortKey)}>
+          <option value="due">期限順</option>
+          <option value="priority">優先度順</option>
+          <option value="updated">更新日順</option>
+        </select>
+        <button
+          type="button"
+          className="secondary-btn order-btn"
+          onClick={() => setSortOrder((o) => (o === "asc" ? "desc" : "asc"))}
+          title="ソート方向を切替"
+        >
+          {sortOrder === "asc" ? "昇順" : "降順"}
+        </button>
+      </div>
       {error && <div className="error-banner">{error}</div>}
+      {sorted.length === 0 && <div className="today-empty">条件に一致するタスクがありません</div>}
       <ul>
-        {issues.map((issue) => (
+        {sorted.map((issue) => (
           <li key={issue.id} className="today-item" draggable onDragStart={(e) => handleDragStart(e, issue)}>
             <button
               type="button"

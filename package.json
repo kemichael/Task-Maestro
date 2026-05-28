@@ -24,7 +24,10 @@
     "@fullcalendar/react": "^6.1.15",
     "@fullcalendar/daygrid": "^6.1.15",
     "@fullcalendar/timegrid": "^6.1.15",
-    "@fullcalendar/interaction": "^6.1.15"
+    "@fullcalendar/interaction": "^6.1.15",
+    "@uiw/react-md-editor": "^4.0.5",
+    "react-markdown": "^9.0.3",
+    "remark-gfm": "^4.0.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.12",
