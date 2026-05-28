@@ -1,0 +1,47 @@
+# Task Maestro: Docker Compose 構成
+#
+# 使い分け:
+#   - 開発: `docker compose --profile dev up`       (Dockerfile.dev、ホットリロード対応)
+#   - 本番動作確認: `docker compose --profile prod up --build`  (Dockerfile マルチステージビルド)
+#
+# 認証情報: ホストの `./.env.local` を読み込む (`.gitignore` 配下、Q8 で確定)
+# SQLite データ: ホストの `./data/` を bind mount で永続化
+
+services:
+  task-maestro-dev:
+    profiles: ["dev"]
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: task-maestro:dev
+    container_name: task-maestro-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      # ソースコードをまるごと bind mount (ホットリロード)
+      - .:/app
+      # node_modules はコンテナ内のものを優先 (ホスト OS との混在を避ける)
+      - /app/node_modules
+      # Next.js のビルドキャッシュもコンテナ内に隔離
+      - /app/.next
+    env_file:
+      - .env.local
+    environment:
+      - LOG_LEVEL=debug
+    restart: unless-stopped
+
+  task-maestro:
+    profiles: ["prod"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: task-maestro:latest
+    container_name: task-maestro
+    ports:
+      - "3000:3000"
+    volumes:
+      # SQLite データのみ永続化
+      - ./data:/app/data
+    env_file:
+      - .env.local
+    restart: unless-stopped

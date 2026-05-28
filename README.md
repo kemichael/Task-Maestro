@@ -18,6 +18,40 @@ Backlog をマスタとした、個人タスクの一元管理ツール (MVP)。
 
 ## セットアップ
 
+### A. Docker で起動 (推奨 — ローカルに Node.js 不要)
+
+事前準備: Docker Desktop または Docker Engine + Docker Compose v2 がインストール済みであること。
+
+```bash
+# 1. 環境変数を準備
+cp .env.example .env.local
+# `.env.local` を編集して Backlog / Google の認証情報を埋める
+
+# 2-A. 開発モード (Next.js dev サーバ、コード変更でホットリロード)
+docker compose --profile dev up --build
+# → http://localhost:3000
+
+# 2-B. 本番ビルド動作確認 (multi-stage build、最小ランタイム)
+docker compose --profile prod up --build
+```
+
+データ (`data/task-maestro.sqlite`) はホストの `./data/` に永続化されます (bind mount)。初回起動時に `migrations/0001_init.sql` が自動適用されます。
+
+#### コンテナ操作の例
+
+```bash
+# コンテナ内でテスト実行
+docker compose --profile dev exec task-maestro-dev npm test
+
+# 型チェック
+docker compose --profile dev exec task-maestro-dev npm run typecheck
+
+# 停止
+docker compose down
+```
+
+### B. ローカル直接起動 (Node.js 20+ がインストール済みの場合)
+
 ```bash
 # 1. 依存解決
 npm install
@@ -32,6 +66,8 @@ npm run dev
 ```
 
 初回起動時に `data/task-maestro.sqlite` が自動生成され、`migrations/0001_init.sql` が適用されます。
+
+> **Windows 環境について**: `better-sqlite3` がネイティブビルドを必要とするため、`node-gyp` の前提 (Python 3、Visual Studio Build Tools) が必要です。導入が手間な場合は **A. Docker 起動を推奨** します。
 
 ## 主要なスクリプト
 

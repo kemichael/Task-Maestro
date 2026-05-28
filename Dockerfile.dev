@@ -1,0 +1,28 @@
+# syntax=docker/dockerfile:1.7
+# 開発用イメージ (Next.js dev サーバ、コードは bind mount でホットリロード)
+
+ARG NODE_VERSION=20-bookworm-slim
+
+FROM node:${NODE_VERSION}
+WORKDIR /app
+
+# better-sqlite3 のネイティブビルドに必要
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends python3 make g++ git \
+  && rm -rf /var/lib/apt/lists/*
+
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV HOSTNAME=0.0.0.0
+ENV PORT=3000
+# bind mount 環境で Next.js のファイル変更検知を確実にする
+ENV WATCHPACK_POLLING=true
+ENV CHOKIDAR_USEPOLLING=true
+
+COPY package.json package-lock.json* ./
+RUN npm ci --include=dev
+
+# ソースは docker-compose.yml の bind mount で注入される
+
+EXPOSE 3000
+
+CMD ["npm", "run", "dev", "--", "--hostname", "0.0.0.0"]

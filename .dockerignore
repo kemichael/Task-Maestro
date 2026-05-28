@@ -1,0 +1,47 @@
+# Node / Next.js
+node_modules
+.next
+out
+dist
+*.tsbuildinfo
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# 環境変数 (コンテナには env_file で渡す)
+.env
+.env.local
+.env.*.local
+
+# ローカル DB (volume で別途マウント)
+data/
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+
+# ログ
+*.log
+npm-debug.log*
+
+# IDE / OS
+.idea
+.vscode
+.DS_Store
+Thumbs.db
+*.swp
+
+# テストカバレッジ
+coverage
+.nyc_output
+
+# ドキュメント (本番イメージには不要)
+docs
+
+# Docker / CI 関連も二度コピー不要
+Dockerfile
+Dockerfile.dev
+docker-compose.yml
+.dockerignore
