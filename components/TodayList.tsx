@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { BacklogIssue } from "@/lib/types/backlog";
 import type { BacklogProjectSetting } from "@/lib/types/settings";
 import { isCompletedStatus } from "@/lib/utils/issueStatus";
+import { EditTicketModal } from "./EditTicketModal";
 
 interface ParentRef {
   id: number;
@@ -47,6 +48,7 @@ export function TodayList({ issues, projects = [], parentMap = {} }: Props) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [checking, setChecking] = useState<number | null>(null);
+  const [editingIssue, setEditingIssue] = useState<BacklogIssue | null>(null);
 
   const [sortKey, setSortKey] = useState<SortKey>("due");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
@@ -224,17 +226,41 @@ export function TodayList({ issues, projects = [], parentMap = {} }: Props) {
                 {issue.dueDate && <span className="meta-due">📅 {issue.dueDate}</span>}
               </div>
             </div>
-            <label className="today-flag">
-              <input
-                type="checkbox"
-                checked={issue.todayFlag}
-                onChange={() => handleFlagToggle(issue.id, issue.todayFlag)}
-              />
-              今日
-            </label>
+            <div className="today-item-actions">
+              <button
+                type="button"
+                className="ghost-btn icon-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditingIssue(issue);
+                }}
+                title="編集"
+                aria-label="編集"
+              >
+                ✎
+              </button>
+              <label className="today-flag" onClick={(e) => e.stopPropagation()}>
+                <input
+                  type="checkbox"
+                  checked={issue.todayFlag}
+                  onChange={() => handleFlagToggle(issue.id, issue.todayFlag)}
+                />
+                今日
+              </label>
+            </div>
           </li>
         ))}
       </ul>
+      {editingIssue && (
+        <EditTicketModal
+          issue={editingIssue}
+          parent={
+            editingIssue.parentIssueId ? parentMap[editingIssue.parentIssueId] : undefined
+          }
+          open={!!editingIssue}
+          onClose={() => setEditingIssue(null)}
+        />
+      )}
     </div>
   );
 }
