@@ -8,6 +8,11 @@ const BACKOFF_DELAYS = [200, 600, 2000];
 export interface FetchJsonOptions {
   method?: string;
   headers?: Record<string, string>;
+  /**
+   * リクエストボディ:
+   * - `string` または `URLSearchParams` の場合は、そのまま送出する (Content-Type は呼出側が指定)。
+   * - それ以外のオブジェクトの場合は `JSON.stringify` され、`Content-Type: application/json` が付く。
+   */
   body?: unknown;
   timeoutMs?: number;
   service: string;
@@ -21,14 +26,21 @@ export async function fetchJson<T = unknown>(
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
+    const bodyIsString = typeof body === "string";
+    const bodyIsFormData = body instanceof URLSearchParams;
+    const serializedBody =
+      body === undefined ? undefined : bodyIsString || bodyIsFormData ? (body as string | URLSearchParams) : JSON.stringify(body);
+    const mergedHeaders: Record<string, string> = {
+      Accept: "application/json",
+      ...(body !== undefined && !bodyIsString && !bodyIsFormData
+        ? { "Content-Type": "application/json" }
+        : {}),
+      ...headers,
+    };
     const response = await fetch(url, {
       method,
-      headers: {
-        Accept: "application/json",
-        ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
-        ...headers,
-      },
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      headers: mergedHeaders,
+      body: serializedBody,
       signal: controller.signal,
     });
     if (!response.ok) {

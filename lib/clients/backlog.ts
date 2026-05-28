@@ -111,7 +111,7 @@ export async function createIssue(payload: CreateIssuePayload): Promise<BacklogI
         service: "backlog",
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: body.toString() as unknown,
+        body,
       }),
     { service: "backlog" },
   );
@@ -153,7 +153,7 @@ export async function patchIssue(
         service: "backlog",
         method: "PATCH",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: body.toString() as unknown,
+        body,
       }),
     { service: "backlog" },
   );
@@ -170,7 +170,7 @@ export async function addComment(issueId: number, content: string): Promise<Back
         service: "backlog",
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: body.toString() as unknown,
+        body,
       }),
     { service: "backlog" },
   );
