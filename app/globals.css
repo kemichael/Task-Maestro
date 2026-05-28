@@ -334,6 +334,32 @@ button:disabled {
   gap: 8px;
 }
 
+.issue-detail label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.issue-detail input,
+.issue-detail textarea,
+.issue-detail select {
+  padding: 6px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.issue-detail-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
 .env-table {
   border-collapse: collapse;
   font-size: 13px;
