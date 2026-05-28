@@ -6,6 +6,8 @@ import type { BacklogIssue } from "@/lib/types/backlog";
 import { MarkdownEditor } from "./MarkdownEditor";
 import { MarkdownView } from "./MarkdownView";
 import { isCompletedStatus } from "@/lib/utils/issueStatus";
+import { normalizeDateForInput } from "@/lib/utils/date";
+import type { BacklogProjectStatus } from "@/lib/types/backlog";
 
 interface ParentRef {
   id: number;
@@ -23,6 +25,7 @@ interface EditDraft {
   description: string;
   dueDate: string;
   priorityId: string;
+  statusId: string;
   assigneeId: string;
   categoryIds: string;
 }
@@ -40,8 +43,9 @@ function toDraft(issue: BacklogIssue): EditDraft {
   return {
     summary: issue.summary,
     description: issue.description ?? "",
-    dueDate: issue.dueDate ?? "",
+    dueDate: normalizeDateForInput(issue.dueDate),
     priorityId: issue.priority ? String(issue.priority.id) : "",
+    statusId: String(issue.status.id),
     assigneeId: issue.assignee ? String(issue.assignee.id) : "",
     categoryIds: issue.categories && issue.categories.length > 0
       ? issue.categories.map((c) => String(c.id)).join(",")
@@ -132,6 +136,8 @@ export function IssueListClient({ issues, parentMap = {} }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [commentBody, setCommentBody] = useState("");
+  const [statuses, setStatuses] = useState<BacklogProjectStatus[]>([]);
+  const [loadingStatuses, setLoadingStatuses] = useState(false);
 
   // フィルタ
   const [keyword, setKeyword] = useState("");
@@ -216,6 +222,30 @@ export function IssueListClient({ issues, parentMap = {} }: Props) {
     setError(null);
   }, [selectedId, selected]);
 
+  // 選択チケットの projectId が変わったらステータス一覧を取得
+  useEffect(() => {
+    if (!selected) {
+      setStatuses([]);
+      return;
+    }
+    let cancelled = false;
+    setLoadingStatuses(true);
+    fetch(`/api/backlog/projects/${selected.projectId}/statuses`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${r.status}`))))
+      .then((data: BacklogProjectStatus[]) => {
+        if (!cancelled) setStatuses(data);
+      })
+      .catch(() => {
+        if (!cancelled) setStatuses([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingStatuses(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selected]);
+
   const handleSelect = (issue: BacklogIssue) => setSelectedId(issue.id);
 
   const resetFilters = () => {
@@ -249,7 +279,11 @@ export function IssueListClient({ issues, parentMap = {} }: Props) {
     const patch: Record<string, unknown> = {};
     if (draft.summary !== selected.summary) patch.summary = draft.summary;
     if (draft.description !== (selected.description ?? "")) patch.description = draft.description;
-    if (draft.dueDate !== (selected.dueDate ?? "")) patch.dueDate = draft.dueDate || null;
+    const initialDueDate = normalizeDateForInput(selected.dueDate);
+    if (draft.dueDate !== initialDueDate) patch.dueDate = draft.dueDate || null;
+    if (draft.statusId !== String(selected.status.id)) {
+      patch.statusId = Number(draft.statusId);
+    }
     const currentPriorityId = selected.priority ? String(selected.priority.id) : "";
     if (draft.priorityId !== currentPriorityId && draft.priorityId !== "") {
       patch.priorityId = Number(draft.priorityId);
@@ -538,12 +572,21 @@ export function IssueListClient({ issues, parentMap = {} }: Props) {
           </details>
           <div className="form-row">
             <label className="form-field">
-              <span className="form-field-label">期限</span>
-              <input
-                type="date"
-                value={draft.dueDate}
-                onChange={(e) => setDraft({ ...draft, dueDate: e.target.value })}
-              />
+              <span className="form-field-label">ステータス</span>
+              <select
+                value={draft.statusId}
+                onChange={(e) => setDraft({ ...draft, statusId: e.target.value })}
+                disabled={loadingStatuses || statuses.length === 0}
+              >
+                {statuses.length === 0 && (
+                  <option value={selected.status.id}>{selected.status.name}</option>
+                )}
+                {statuses.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
             </label>
             <label className="form-field">
               <span className="form-field-label">優先度</span>
@@ -560,6 +603,14 @@ export function IssueListClient({ issues, parentMap = {} }: Props) {
               </select>
             </label>
           </div>
+          <label className="form-field">
+            <span className="form-field-label">期限 (空欄で解除)</span>
+            <input
+              type="date"
+              value={draft.dueDate}
+              onChange={(e) => setDraft({ ...draft, dueDate: e.target.value })}
+            />
+          </label>
           <div className="form-row">
             <label className="form-field">
               <span className="form-field-label">担当者 ID (空欄で未割当)</span>
@@ -607,7 +658,9 @@ export function IssueListClient({ issues, parentMap = {} }: Props) {
               {pending ? "保存中…" : "保存"}
             </button>
           </div>
-          <p className="hint">状態 ({selected.status.name}) はダッシュボードの「今日やる」着手ボタンで「処理中」相当へ遷移します。</p>
+          <p className="hint">
+            変更したい項目だけ編集してください。Backlog の現在値が初期表示されます。ダッシュボードの ▶ 着手ボタンを使うと、設定済みの「処理中」相当ステータスへワンクリックで遷移できます。
+          </p>
         </div>
       )}
     </div>

@@ -2,10 +2,11 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import type { BacklogIssue } from "@/lib/types/backlog";
+import type { BacklogIssue, BacklogProjectStatus } from "@/lib/types/backlog";
 import { MarkdownEditor } from "./MarkdownEditor";
 import { MarkdownView } from "./MarkdownView";
 import { isCompletedStatus } from "@/lib/utils/issueStatus";
+import { normalizeDateForInput } from "@/lib/utils/date";
 
 interface ParentRef {
   id: number;
@@ -40,25 +41,30 @@ export function EditTicketModal({ issue, parent, open, onClose }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
 
+  const initialDueDate = normalizeDateForInput(issue.dueDate);
+  const initialCategoryIds = issue.categories && issue.categories.length > 0
+    ? issue.categories.map((c) => String(c.id)).join(",")
+    : "";
+
   const [summary, setSummary] = useState(issue.summary);
   const [description, setDescription] = useState(issue.description ?? "");
-  const [dueDate, setDueDate] = useState(issue.dueDate ?? "");
+  const [dueDate, setDueDate] = useState(initialDueDate);
   const [priorityId, setPriorityId] = useState(issue.priority ? String(issue.priority.id) : "");
+  const [statusId, setStatusId] = useState(String(issue.status.id));
   const [assigneeId, setAssigneeId] = useState(issue.assignee ? String(issue.assignee.id) : "");
-  const [categoryIds, setCategoryIds] = useState(
-    issue.categories && issue.categories.length > 0
-      ? issue.categories.map((c) => String(c.id)).join(",")
-      : "",
-  );
+  const [categoryIds, setCategoryIds] = useState(initialCategoryIds);
   const [commentBody, setCommentBody] = useState("");
+  const [statuses, setStatuses] = useState<BacklogProjectStatus[]>([]);
+  const [loadingStatuses, setLoadingStatuses] = useState(false);
 
   // 起動時に最新の issue を初期値として再セット
   useEffect(() => {
     if (!open) return;
     setSummary(issue.summary);
     setDescription(issue.description ?? "");
-    setDueDate(issue.dueDate ?? "");
+    setDueDate(normalizeDateForInput(issue.dueDate));
     setPriorityId(issue.priority ? String(issue.priority.id) : "");
+    setStatusId(String(issue.status.id));
     setAssigneeId(issue.assignee ? String(issue.assignee.id) : "");
     setCategoryIds(
       issue.categories && issue.categories.length > 0
@@ -70,6 +76,27 @@ export function EditTicketModal({ issue, parent, open, onClose }: Props) {
     setInfo(null);
   }, [issue, open]);
 
+  // プロジェクトのステータス一覧を取得
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    setLoadingStatuses(true);
+    fetch(`/api/backlog/projects/${issue.projectId}/statuses`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${r.status}`))))
+      .then((data: BacklogProjectStatus[]) => {
+        if (!cancelled) setStatuses(data);
+      })
+      .catch(() => {
+        if (!cancelled) setStatuses([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingStatuses(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [issue.projectId, open]);
+
   if (!open) return null;
 
   const handleSave = () => {
@@ -78,7 +105,10 @@ export function EditTicketModal({ issue, parent, open, onClose }: Props) {
     const patch: Record<string, unknown> = {};
     if (summary !== issue.summary) patch.summary = summary;
     if (description !== (issue.description ?? "")) patch.description = description;
-    if (dueDate !== (issue.dueDate ?? "")) patch.dueDate = dueDate || null;
+    if (dueDate !== initialDueDate) patch.dueDate = dueDate || null;
+    if (statusId !== String(issue.status.id)) {
+      patch.statusId = Number(statusId);
+    }
     const currentPriorityId = issue.priority ? String(issue.priority.id) : "";
     if (priorityId !== currentPriorityId && priorityId !== "") {
       patch.priorityId = Number(priorityId);
@@ -87,8 +117,7 @@ export function EditTicketModal({ issue, parent, open, onClose }: Props) {
     if (assigneeId !== currentAssigneeId) {
       patch.assigneeId = assigneeId ? Number(assigneeId) : null;
     }
-    const currentCategoryIds = issue.categories?.map((c) => String(c.id)).join(",") ?? "";
-    if (categoryIds !== currentCategoryIds) {
+    if (categoryIds !== initialCategoryIds) {
       const ids = categoryIds
         .split(",")
         .map((s) => s.trim())
@@ -188,8 +217,21 @@ export function EditTicketModal({ issue, parent, open, onClose }: Props) {
 
         <div className="form-row">
           <label className="form-field">
-            <span className="form-field-label">期限</span>
-            <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+            <span className="form-field-label">ステータス</span>
+            <select
+              value={statusId}
+              onChange={(e) => setStatusId(e.target.value)}
+              disabled={loadingStatuses || statuses.length === 0}
+            >
+              {statuses.length === 0 && (
+                <option value={issue.status.id}>{issue.status.name}</option>
+              )}
+              {statuses.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="form-field">
             <span className="form-field-label">優先度</span>
@@ -202,6 +244,13 @@ export function EditTicketModal({ issue, parent, open, onClose }: Props) {
               ))}
             </select>
           </label>
+        </div>
+        <div className="form-row">
+          <label className="form-field">
+            <span className="form-field-label">期限 (空欄で解除)</span>
+            <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+          </label>
+          <label className="form-field placeholder-field"></label>
         </div>
         <div className="form-row">
           <label className="form-field">
