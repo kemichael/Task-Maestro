@@ -1,9 +1,9 @@
 import "server-only";
 import { listTodayIssues, updateTicket } from "./backlogIssueService";
 import { getAppSettings } from "../db/settingsRepository";
-import { setTodayFlag } from "../db/backlogIssueRepository";
+import { findById, setTodayFlag } from "../db/backlogIssueRepository";
 import type { BacklogIssue } from "../types/backlog";
-import { MappingMissingError } from "../errors";
+import { MappingMissingError, NotFoundError } from "../errors";
 import { logger } from "../logger";
 
 function priorityRank(priority?: BacklogIssue["priority"]): number {
@@ -32,11 +32,9 @@ export function toggleTodayFlag(issueId: number, flag: boolean): void {
 
 export async function markStarted(issueId: number): Promise<BacklogIssue> {
   const settings = getAppSettings();
-  // 対象 issue の projectId を取得
-  const issues = listTodayIssues();
-  const target = issues.find((i) => i.id === issueId);
+  const target = findById(issueId);
   if (!target) {
-    throw new Error(`チケット ${issueId} が「今日やる」リストに存在しません`);
+    throw new NotFoundError(`チケット ${issueId} がローカルキャッシュに存在しません`);
   }
   const mapping = settings.statusMapping.find((m) => m.projectId === target.projectId);
   if (!mapping) {
