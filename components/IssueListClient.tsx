@@ -27,7 +27,7 @@ interface EditDraft {
   categoryIds: string;
 }
 
-type SortKey = "due" | "priority" | "updated" | "key";
+type SortKey = "due" | "priority" | "updated" | "key" | "parent";
 type SortOrder = "asc" | "desc";
 
 const PRIORITY_OPTIONS: Array<{ id: number; name: string }> = [
@@ -89,6 +89,41 @@ function compare(a: BacklogIssue, b: BacklogIssue, key: SortKey, order: SortOrde
   }
 }
 
+/**
+ * 親子グルーピングソート:
+ * - 親候補 (親なし or 親が一覧にない孤児) を issueKey でソート
+ * - 各親の直後にその子 (issueKey でソート) を並べる
+ */
+function sortByParentChild(issues: BacklogIssue[], order: SortOrder): BacklogIssue[] {
+  const sign = order === "asc" ? 1 : -1;
+  const byId = new Map<number, BacklogIssue>();
+  for (const i of issues) byId.set(i.id, i);
+
+  const parents: BacklogIssue[] = [];
+  const childrenMap = new Map<number, BacklogIssue[]>();
+  for (const i of issues) {
+    if (i.parentIssueId && byId.has(i.parentIssueId)) {
+      const arr = childrenMap.get(i.parentIssueId) ?? [];
+      arr.push(i);
+      childrenMap.set(i.parentIssueId, arr);
+    } else {
+      parents.push(i);
+    }
+  }
+  parents.sort((a, b) => a.issueKey.localeCompare(b.issueKey) * sign);
+
+  const result: BacklogIssue[] = [];
+  for (const parent of parents) {
+    result.push(parent);
+    const kids = childrenMap.get(parent.id);
+    if (kids) {
+      kids.sort((a, b) => a.issueKey.localeCompare(b.issueKey));
+      result.push(...kids);
+    }
+  }
+  return result;
+}
+
 export function IssueListClient({ issues, parentMap = {} }: Props) {
   const router = useRouter();
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -133,40 +168,43 @@ export function IssueListClient({ issues, parentMap = {} }: Props) {
     const endOfWeekStr = endOfWeek.toISOString().slice(0, 10);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
 
-    return issues
-      .filter((i) => {
-        if (keyword) {
-          const k = keyword.toLowerCase();
-          const haystack = [i.summary, i.issueKey, i.description ?? ""].join(" ").toLowerCase();
-          if (!haystack.includes(k)) return false;
-        }
-        if (projectFilter !== "" && i.projectId !== projectFilter) return false;
-        if (statusFilter === "!completed") {
-          if (isCompletedStatus(i.status)) return false;
-        } else if (statusFilter !== "" && i.status.id !== statusFilter) {
-          return false;
-        }
-        if (priorityFilter !== "" && i.priority?.id !== priorityFilter) return false;
-        switch (dueFilter) {
-          case "overdue":
-            if (!i.dueDate || i.dueDate >= today) return false;
-            break;
-          case "today":
-            if (i.dueDate !== today) return false;
-            break;
-          case "thisWeek":
-            if (!i.dueDate || i.dueDate > endOfWeekStr) return false;
-            break;
-          case "thisMonth":
-            if (!i.dueDate || i.dueDate > endOfMonth) return false;
-            break;
-          case "noDate":
-            if (i.dueDate) return false;
-            break;
-        }
-        return true;
-      })
-      .sort((a, b) => compare(a, b, sortKey, sortOrder));
+    const matched = issues.filter((i) => {
+      if (keyword) {
+        const k = keyword.toLowerCase();
+        const haystack = [i.summary, i.issueKey, i.description ?? ""].join(" ").toLowerCase();
+        if (!haystack.includes(k)) return false;
+      }
+      if (projectFilter !== "" && i.projectId !== projectFilter) return false;
+      if (statusFilter === "!completed") {
+        if (isCompletedStatus(i.status)) return false;
+      } else if (statusFilter !== "" && i.status.id !== statusFilter) {
+        return false;
+      }
+      if (priorityFilter !== "" && i.priority?.id !== priorityFilter) return false;
+      switch (dueFilter) {
+        case "overdue":
+          if (!i.dueDate || i.dueDate >= today) return false;
+          break;
+        case "today":
+          if (i.dueDate !== today) return false;
+          break;
+        case "thisWeek":
+          if (!i.dueDate || i.dueDate > endOfWeekStr) return false;
+          break;
+        case "thisMonth":
+          if (!i.dueDate || i.dueDate > endOfMonth) return false;
+          break;
+        case "noDate":
+          if (i.dueDate) return false;
+          break;
+      }
+      return true;
+    });
+
+    if (sortKey === "parent") {
+      return sortByParentChild(matched, sortOrder);
+    }
+    return [...matched].sort((a, b) => compare(a, b, sortKey, sortOrder));
   }, [issues, keyword, projectFilter, statusFilter, priorityFilter, dueFilter, sortKey, sortOrder]);
 
   const selected = issues.find((i) => i.id === selectedId) ?? null;
@@ -340,6 +378,28 @@ export function IssueListClient({ issues, parentMap = {} }: Props) {
             クリア
           </button>
         </div>
+        <div className="sort-bar">
+          <span className="sort-label">並び替え:</span>
+          {(["due", "priority", "updated", "key", "parent"] as SortKey[]).map((k) => (
+            <button
+              key={k}
+              type="button"
+              className={`sort-btn ${sortKey === k ? "is-active" : ""}`}
+              onClick={() => toggleSort(k)}
+            >
+              {k === "due"
+                ? "期限"
+                : k === "priority"
+                  ? "優先度"
+                  : k === "updated"
+                    ? "更新日"
+                    : k === "key"
+                      ? "キー"
+                      : "親子順"}{" "}
+              {sortIndicator(k)}
+            </button>
+          ))}
+        </div>
         <div className="filter-summary">
           <span className="filter-count">{filtered.length}</span> / {issues.length} 件
         </div>
@@ -424,21 +484,6 @@ export function IssueListClient({ issues, parentMap = {} }: Props) {
               </div>
             );
           })}
-        </div>
-        {/* ソートコントロール */}
-        <div className="sort-bar">
-          <span className="sort-label">並び替え:</span>
-          {(["due", "priority", "updated", "key"] as SortKey[]).map((k) => (
-            <button
-              key={k}
-              type="button"
-              className={`sort-btn ${sortKey === k ? "is-active" : ""}`}
-              onClick={() => toggleSort(k)}
-            >
-              {k === "due" ? "期限" : k === "priority" ? "優先度" : k === "updated" ? "更新日" : "キー"}{" "}
-              {sortIndicator(k)}
-            </button>
-          ))}
         </div>
       </div>
       {selected && draft && (
