@@ -22,6 +22,7 @@ function toBacklogIssue(row: BacklogIssueRow): BacklogIssue {
     dueDate: row.due_date ?? undefined,
     updatedAt: row.updated_at,
     todayFlag: row.today_flag === 1,
+    parentIssueId: row.parent_issue_id ?? undefined,
   };
 }
 
@@ -31,8 +32,8 @@ function upsertOne(issue: BacklogIssue): void {
     `INSERT INTO backlog_issue (
        id, project_id, issue_key, summary, description,
        status_id, status_name, priority_id, priority_name,
-       assignee_id, assignee_name, due_date, updated_at, cached_at, today_flag
-     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE((SELECT today_flag FROM backlog_issue WHERE id = ?), 0))
+       assignee_id, assignee_name, due_date, updated_at, cached_at, today_flag, parent_issue_id
+     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE((SELECT today_flag FROM backlog_issue WHERE id = ?), 0), ?)
      ON CONFLICT(id) DO UPDATE SET
        project_id = excluded.project_id,
        issue_key = excluded.issue_key,
@@ -46,7 +47,8 @@ function upsertOne(issue: BacklogIssue): void {
        assignee_name = excluded.assignee_name,
        due_date = excluded.due_date,
        updated_at = excluded.updated_at,
-       cached_at = excluded.cached_at`,
+       cached_at = excluded.cached_at,
+       parent_issue_id = excluded.parent_issue_id`,
   ).run(
     issue.id,
     issue.projectId,
@@ -63,6 +65,7 @@ function upsertOne(issue: BacklogIssue): void {
     issue.updatedAt,
     new Date().toISOString(),
     issue.id,
+    issue.parentIssueId ?? null,
   );
 }
 
@@ -93,6 +96,8 @@ export interface ListIssuesFilter {
   projectIds?: number[];
   statusIds?: number[];
   assigneeIds?: number[];
+  /** true の場合、`backlog_issue.assignee_id` が NULL でない (=担当者付き) のみ取得する */
+  requireAssigned?: boolean;
 }
 
 export function findAll(filter: ListIssuesFilter = {}): BacklogIssue[] {
@@ -112,6 +117,9 @@ export function findAll(filter: ListIssuesFilter = {}): BacklogIssue[] {
     if (filter.assigneeIds && filter.assigneeIds.length > 0) {
       conditions.push(`assignee_id IN (${filter.assigneeIds.map(() => "?").join(",")})`);
       params.push(...filter.assigneeIds);
+    }
+    if (filter.requireAssigned) {
+      conditions.push("assignee_id IS NOT NULL");
     }
 
     const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
@@ -138,16 +146,35 @@ export function findById(id: number): BacklogIssue | undefined {
   }
 }
 
-export function findToday(today: string): BacklogIssue[] {
+export function findByIds(ids: number[]): BacklogIssue[] {
+  if (ids.length === 0) return [];
   try {
     const db = getDb();
+    const placeholders = ids.map(() => "?").join(",");
     const rows = db
-      .prepare<[string], BacklogIssueRow>(
-        `SELECT * FROM backlog_issue
-         WHERE today_flag = 1 OR (due_date IS NOT NULL AND due_date <= ?)
-         ORDER BY due_date IS NULL, due_date ASC, updated_at DESC`,
+      .prepare<typeof ids, BacklogIssueRow>(
+        `SELECT * FROM backlog_issue WHERE id IN (${placeholders})`,
       )
-      .all(today);
+      .all(...ids);
+    return rows.map(toBacklogIssue);
+  } catch (error) {
+    throw new DatabaseError("チケットの ID 取得に失敗", error);
+  }
+}
+
+export function findToday(today: string, selfUserId?: number): BacklogIssue[] {
+  try {
+    const db = getDb();
+    // selfUserId 指定時は自分担当のみ。親課題は assignee が違う可能性があるので除外される
+    const baseSql = `SELECT * FROM backlog_issue
+         WHERE (today_flag = 1 OR (due_date IS NOT NULL AND due_date <= ?))`;
+    const sql = selfUserId
+      ? `${baseSql} AND assignee_id = ?
+         ORDER BY due_date IS NULL, due_date ASC, updated_at DESC`
+      : `${baseSql}
+         ORDER BY due_date IS NULL, due_date ASC, updated_at DESC`;
+    const stmt = db.prepare<[string, number] | [string], BacklogIssueRow>(sql);
+    const rows = selfUserId ? stmt.all(today, selfUserId) : stmt.all(today);
     return rows.map(toBacklogIssue);
   } catch (error) {
     throw new DatabaseError("今日やるリストの取得に失敗", error);

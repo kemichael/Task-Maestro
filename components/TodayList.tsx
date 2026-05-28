@@ -5,9 +5,16 @@ import { useRouter } from "next/navigation";
 import type { BacklogIssue } from "@/lib/types/backlog";
 import type { BacklogProjectSetting } from "@/lib/types/settings";
 
+interface ParentRef {
+  id: number;
+  issueKey: string;
+  name: string;
+}
+
 interface Props {
   issues: BacklogIssue[];
   projects?: BacklogProjectSetting[];
+  parentMap?: Record<number, ParentRef>;
 }
 
 type SortKey = "due" | "priority" | "updated";
@@ -34,7 +41,7 @@ function compareIssues(a: BacklogIssue, b: BacklogIssue, key: SortKey, order: So
   }
 }
 
-export function TodayList({ issues, projects = [] }: Props) {
+export function TodayList({ issues, projects = [], parentMap = {} }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -173,6 +180,13 @@ export function TodayList({ issues, projects = [] }: Props) {
               {pending && checking === issue.id ? "…" : "▶"}
             </button>
             <div className="today-body">
+              {issue.parentIssueId && (
+                <span className="parent-ref" title="親課題">
+                  ↑ {parentMap[issue.parentIssueId]
+                    ? `${parentMap[issue.parentIssueId].issueKey}: ${parentMap[issue.parentIssueId].name}`
+                    : `#${issue.parentIssueId}`}
+                </span>
+              )}
               <span className="issue-key">{issue.issueKey}</span>
               <span className="issue-summary">{issue.summary}</span>
               <span className="issue-meta">

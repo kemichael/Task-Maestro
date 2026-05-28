@@ -16,6 +16,7 @@ interface BacklogApiIssue {
   assignee?: { id: number; name: string };
   dueDate?: string;
   updated: string;
+  parentIssueId?: number | null;
 }
 
 interface BacklogApiComment {
@@ -60,6 +61,7 @@ function toBacklogIssue(api: BacklogApiIssue): BacklogIssue {
     dueDate: api.dueDate,
     updatedAt: api.updated,
     todayFlag: false,
+    parentIssueId: api.parentIssueId ?? undefined,
   };
 }
 
@@ -95,6 +97,27 @@ export async function getMyself(): Promise<BacklogUser> {
     { service: "backlog" },
   );
   return data;
+}
+
+/**
+ * 指定 ID のチケットを一括取得 (担当者フィルタなし)。
+ * 親課題の補助取得などで、自分担当外のチケットも取得したい場合に使う。
+ * Backlog API の `id[]` パラメータで複数同時取得 (最大 100 件)。
+ */
+export async function listIssuesByIds(ids: number[]): Promise<BacklogIssue[]> {
+  if (ids.length === 0) return [];
+  const base = getBacklogBaseUrl();
+  const result: BacklogIssue[] = [];
+  for (let i = 0; i < ids.length; i += 100) {
+    const chunk = ids.slice(i, i + 100);
+    const url = withApiKey(`${base}/issues`, { id: chunk, count: 100 });
+    const data = await withRetry(
+      () => fetchJson<BacklogApiIssue[]>(url, { service: "backlog" }),
+      { service: "backlog" },
+    );
+    result.push(...data.map(toBacklogIssue));
+  }
+  return result;
 }
 
 export interface CreateIssuePayload extends TicketDraft {}

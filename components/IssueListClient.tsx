@@ -7,8 +7,15 @@ import { MarkdownEditor } from "./MarkdownEditor";
 import { MarkdownView } from "./MarkdownView";
 import { isCompletedStatus } from "@/lib/utils/issueStatus";
 
+interface ParentRef {
+  id: number;
+  issueKey: string;
+  name: string;
+}
+
 interface Props {
   issues: BacklogIssue[];
+  parentMap?: Record<number, ParentRef>;
 }
 
 interface EditDraft {
@@ -65,7 +72,7 @@ function compare(a: BacklogIssue, b: BacklogIssue, key: SortKey, order: SortOrde
   }
 }
 
-export function IssueListClient({ issues }: Props) {
+export function IssueListClient({ issues, parentMap = {} }: Props) {
   const router = useRouter();
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [draft, setDraft] = useState<EditDraft | null>(null);
@@ -311,6 +318,7 @@ export function IssueListClient({ issues }: Props) {
             <tr>
               <th className="sortable" onClick={() => toggleSort("key")}>キー{sortIndicator("key")}</th>
               <th>タイトル</th>
+              <th>親課題</th>
               <th>状態</th>
               <th className="sortable" onClick={() => toggleSort("priority")}>優先度{sortIndicator("priority")}</th>
               <th>担当</th>
@@ -319,31 +327,45 @@ export function IssueListClient({ issues }: Props) {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((issue) => (
-              <tr
-                key={issue.id}
-                onClick={() => handleSelect(issue)}
-                className={selectedId === issue.id ? "selected" : ""}
-                draggable
-                onDragStart={(e) => {
-                  e.dataTransfer.setData(
-                    "application/x-tm-issue",
-                    JSON.stringify({ id: issue.id, summary: issue.summary, issueKey: issue.issueKey }),
-                  );
-                }}
-              >
-                <td>{issue.issueKey}</td>
-                <td>{issue.summary}</td>
-                <td>{issue.status.name}</td>
-                <td>{issue.priority?.name ?? "—"}</td>
-                <td>{issue.assignee?.name ?? "—"}</td>
-                <td>{issue.dueDate ?? "—"}</td>
-                <td>{issue.updatedAt.slice(0, 10)}</td>
-              </tr>
-            ))}
+            {filtered.map((issue) => {
+              const parent = issue.parentIssueId ? parentMap[issue.parentIssueId] : undefined;
+              return (
+                <tr
+                  key={issue.id}
+                  onClick={() => handleSelect(issue)}
+                  className={selectedId === issue.id ? "selected" : ""}
+                  draggable
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData(
+                      "application/x-tm-issue",
+                      JSON.stringify({ id: issue.id, summary: issue.summary, issueKey: issue.issueKey }),
+                    );
+                  }}
+                >
+                  <td>{issue.issueKey}</td>
+                  <td>{issue.summary}</td>
+                  <td className="parent-cell">
+                    {issue.parentIssueId
+                      ? parent
+                        ? (
+                            <span title={parent.name}>
+                              <strong>{parent.issueKey}</strong>: {parent.name}
+                            </span>
+                          )
+                        : <span className="parent-unresolved">#{issue.parentIssueId}</span>
+                      : "—"}
+                  </td>
+                  <td>{issue.status.name}</td>
+                  <td>{issue.priority?.name ?? "—"}</td>
+                  <td>{issue.assignee?.name ?? "—"}</td>
+                  <td>{issue.dueDate ?? "—"}</td>
+                  <td>{issue.updatedAt.slice(0, 10)}</td>
+                </tr>
+              );
+            })}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={7}>
+                <td colSpan={8}>
                   {issues.length === 0
                     ? "チケットがありません。「Backlog から取り込み」を実行してください。"
                     : "条件に一致するチケットがありません"}
@@ -356,6 +378,19 @@ export function IssueListClient({ issues }: Props) {
       {selected && draft && (
         <div className="issue-detail">
           <h3>{selected.issueKey}</h3>
+          {selected.parentIssueId && (
+            <p className="parent-ref-detail">
+              ↑ 親課題:{" "}
+              {parentMap[selected.parentIssueId]
+                ? (
+                    <span>
+                      <strong>{parentMap[selected.parentIssueId].issueKey}</strong>{" "}
+                      {parentMap[selected.parentIssueId].name}
+                    </span>
+                  )
+                : <span className="parent-unresolved">#{selected.parentIssueId}</span>}
+            </p>
+          )}
           {error && <div className="error-banner">{error}</div>}
           {info && <div className="info-banner">{info}</div>}
           <label>

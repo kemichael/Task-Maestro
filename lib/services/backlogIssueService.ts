@@ -1,6 +1,13 @@
 import "server-only";
-import { listIssues, createIssue, patchIssue, addComment } from "../clients/backlog";
-import { upsertIssues, findAll, findById, findToday, deleteById } from "../db/backlogIssueRepository";
+import { listIssues, listIssuesByIds, createIssue, patchIssue, addComment } from "../clients/backlog";
+import {
+  upsertIssues,
+  findAll,
+  findById,
+  findByIds,
+  findToday,
+  deleteById,
+} from "../db/backlogIssueRepository";
 import { getAppSettings } from "../db/settingsRepository";
 import type { BacklogIssue } from "../types/backlog";
 import type { TicketDraft } from "../types/ticket";
@@ -46,6 +53,33 @@ export async function syncAllProjects(): Promise<SyncResult> {
     { inserted, updated, fetched: collected.length, selfUserId },
     "Backlog 同期完了 (担当者フィルタ適用)",
   );
+
+  // 親課題を補助取得 (UI で「親キー: タイトル」を表示するため)
+  const parentIds = new Set<number>();
+  for (const issue of collected) {
+    if (issue.parentIssueId) parentIds.add(issue.parentIssueId);
+  }
+  if (parentIds.size > 0) {
+    const localParents = findByIds(Array.from(parentIds));
+    const localParentIdSet = new Set(localParents.map((p) => p.id));
+    const missingParentIds = Array.from(parentIds).filter((id) => !localParentIdSet.has(id));
+    if (missingParentIds.length > 0) {
+      try {
+        const fetchedParents = await listIssuesByIds(missingParentIds);
+        if (fetchedParents.length > 0) {
+          upsertIssues(fetchedParents);
+          logger.info(
+            { fetchedParents: fetchedParents.length, requested: missingParentIds.length },
+            "親課題の補助取得完了",
+          );
+        }
+      } catch (error) {
+        // 親取得失敗は致命的でないため警告にとどめる
+        logger.warn({ error, count: missingParentIds.length }, "親課題の補助取得に失敗");
+      }
+    }
+  }
+
   return { inserted, updated, fetched: collected.length };
 }
 
@@ -77,15 +111,31 @@ export async function updateTicket(
 }
 
 export function listLocalIssues(filter: { projectIds?: number[] } = {}): BacklogIssue[] {
-  return findAll(filter);
+  const settings = getAppSettings();
+  const selfUserId = settings.backlog.self?.userId;
+  return findAll({
+    ...filter,
+    ...(selfUserId ? { assigneeIds: [selfUserId] } : {}),
+  });
+}
+
+export function listAllLocalIssues(): BacklogIssue[] {
+  // 親課題を含むキャッシュ全件 (UI 側で親 lookup する用)
+  return findAll({});
 }
 
 export function getLocalIssue(id: number): BacklogIssue | undefined {
   return findById(id);
 }
 
+export function listLocalIssuesByIds(ids: number[]): BacklogIssue[] {
+  return findByIds(ids);
+}
+
 export function listTodayIssues(today: string = new Date().toISOString().slice(0, 10)): BacklogIssue[] {
-  return findToday(today);
+  const settings = getAppSettings();
+  const selfUserId = settings.backlog.self?.userId;
+  return findToday(today, selfUserId);
 }
 
 export function purgeLocalIssue(id: number): void {
