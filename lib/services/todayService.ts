@@ -5,6 +5,7 @@ import { findById, setTodayFlag } from "../db/backlogIssueRepository";
 import type { BacklogIssue } from "../types/backlog";
 import { MappingMissingError, NotFoundError } from "../errors";
 import { logger } from "../logger";
+import { isCompletedIssue } from "../utils/issueStatus";
 
 function priorityRank(priority?: BacklogIssue["priority"]): number {
   if (!priority) return 4;
@@ -15,7 +16,11 @@ function priorityRank(priority?: BacklogIssue["priority"]): number {
 export function getTodayList(today: string = new Date().toISOString().slice(0, 10)): BacklogIssue[] {
   const issues = listTodayIssues(today);
   const dedup = new Map<number, BacklogIssue>();
-  for (const issue of issues) dedup.set(issue.id, issue);
+  for (const issue of issues) {
+    // 完了済みのチケットは「今日やる」から除外
+    if (isCompletedIssue(issue)) continue;
+    dedup.set(issue.id, issue);
+  }
   return Array.from(dedup.values()).sort((a, b) => {
     const aDue = a.dueDate ?? "9999-99-99";
     const bDue = b.dueDate ?? "9999-99-99";

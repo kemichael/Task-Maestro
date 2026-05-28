@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { BacklogIssue } from "@/lib/types/backlog";
 import { MarkdownEditor } from "./MarkdownEditor";
 import { MarkdownView } from "./MarkdownView";
+import { isCompletedStatus } from "@/lib/utils/issueStatus";
 
 interface Props {
   issues: BacklogIssue[];
@@ -76,7 +77,8 @@ export function IssueListClient({ issues }: Props) {
   // フィルタ
   const [keyword, setKeyword] = useState("");
   const [projectFilter, setProjectFilter] = useState<number | "">("");
-  const [statusFilter, setStatusFilter] = useState<number | "">("");
+  // "" = 全 / "!completed" = 完了以外 / number = 個別 status_id
+  const [statusFilter, setStatusFilter] = useState<number | "" | "!completed">("!completed");
   const [priorityFilter, setPriorityFilter] = useState<number | "">("");
   const [dueFilter, setDueFilter] = useState<"all" | "overdue" | "today" | "thisWeek" | "thisMonth" | "noDate">("all");
 
@@ -118,7 +120,11 @@ export function IssueListClient({ issues }: Props) {
           if (!haystack.includes(k)) return false;
         }
         if (projectFilter !== "" && i.projectId !== projectFilter) return false;
-        if (statusFilter !== "" && i.status.id !== statusFilter) return false;
+        if (statusFilter === "!completed") {
+          if (isCompletedStatus(i.status)) return false;
+        } else if (statusFilter !== "" && i.status.id !== statusFilter) {
+          return false;
+        }
         if (priorityFilter !== "" && i.priority?.id !== priorityFilter) return false;
         switch (dueFilter) {
           case "overdue":
@@ -156,7 +162,8 @@ export function IssueListClient({ issues }: Props) {
   const resetFilters = () => {
     setKeyword("");
     setProjectFilter("");
-    setStatusFilter("");
+    // デフォルトは「完了以外」(完了済みチケットでノイズを増やさない)
+    setStatusFilter("!completed");
     setPriorityFilter("");
     setDueFilter("all");
   };
@@ -258,8 +265,18 @@ export function IssueListClient({ issues }: Props) {
               </option>
             ))}
           </select>
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value ? Number(e.target.value) : "")}>
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (v === "") setStatusFilter("");
+              else if (v === "!completed") setStatusFilter("!completed");
+              else setStatusFilter(Number(v));
+            }}
+          >
             <option value="">全ステータス</option>
+            <option value="!completed">完了以外</option>
+            <option disabled>──────────</option>
             {statusOptions.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}

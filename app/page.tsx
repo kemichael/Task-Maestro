@@ -41,7 +41,7 @@ export default async function DashboardPage() {
       <div className="dashboard-grid">
         <section className="dashboard-left">
           <h2>今日やる</h2>
-          <TodayList issues={today} />
+          <TodayList issues={today} projects={settings.backlog.projects} />
         </section>
         <section className="dashboard-right">
           <h2>カレンダー</h2>

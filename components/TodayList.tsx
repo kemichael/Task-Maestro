@@ -3,9 +3,11 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { BacklogIssue } from "@/lib/types/backlog";
+import type { BacklogProjectSetting } from "@/lib/types/settings";
 
 interface Props {
   issues: BacklogIssue[];
+  projects?: BacklogProjectSetting[];
 }
 
 type SortKey = "due" | "priority" | "updated";
@@ -32,7 +34,7 @@ function compareIssues(a: BacklogIssue, b: BacklogIssue, key: SortKey, order: So
   }
 }
 
-export function TodayList({ issues }: Props) {
+export function TodayList({ issues, projects = [] }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -41,19 +43,40 @@ export function TodayList({ issues }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>("due");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [keyword, setKeyword] = useState("");
+  const [projectFilter, setProjectFilter] = useState<number | "">("");
+
+  // 設定にプロジェクト名がない場合は一覧から派生
+  const projectOptions = useMemo(() => {
+    const map = new Map<number, string>();
+    for (const p of projects) {
+      const label = p.name ?? p.projectKey ?? `Project ${p.projectId}`;
+      map.set(p.projectId, label);
+    }
+    for (const i of issues) {
+      if (!map.has(i.projectId)) {
+        map.set(i.projectId, i.issueKey.split("-")[0] ?? `Project ${i.projectId}`);
+      }
+    }
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+  }, [issues, projects]);
 
   const sorted = useMemo(() => {
-    const filtered = keyword
-      ? issues.filter((i) => {
+    return issues
+      .filter((i) => {
+        if (projectFilter !== "" && i.projectId !== projectFilter) return false;
+        if (keyword) {
           const k = keyword.toLowerCase();
-          return (
-            i.summary.toLowerCase().includes(k) ||
-            i.issueKey.toLowerCase().includes(k)
-          );
-        })
-      : issues;
-    return [...filtered].sort((a, b) => compareIssues(a, b, sortKey, sortOrder));
-  }, [issues, sortKey, sortOrder, keyword]);
+          if (
+            !i.summary.toLowerCase().includes(k) &&
+            !i.issueKey.toLowerCase().includes(k)
+          ) {
+            return false;
+          }
+        }
+        return true;
+      })
+      .sort((a, b) => compareIssues(a, b, sortKey, sortOrder));
+  }, [issues, sortKey, sortOrder, keyword, projectFilter]);
 
   const handleCheck = (issueId: number) => {
     setError(null);
@@ -109,6 +132,18 @@ export function TodayList({ issues }: Props) {
           onChange={(e) => setKeyword(e.target.value)}
           className="today-search"
         />
+        <select
+          value={projectFilter}
+          onChange={(e) => setProjectFilter(e.target.value ? Number(e.target.value) : "")}
+          title="プロジェクトで絞り込み"
+        >
+          <option value="">全プロジェクト</option>
+          {projectOptions.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </select>
         <select value={sortKey} onChange={(e) => setSortKey(e.target.value as SortKey)}>
           <option value="due">期限順</option>
           <option value="priority">優先度順</option>
