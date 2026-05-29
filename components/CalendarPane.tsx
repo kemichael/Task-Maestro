@@ -25,12 +25,22 @@ export function CalendarPane() {
   const calendarRef = useRef<FullCalendar | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // FullCalendar の Draggable を初期化 (document.body を監視して .today-item / .issue-card を D&D 可能化)
+  // FullCalendar の Draggable を初期化 (document.body を監視して .today-item / .issue-card / .local-task-item を D&D 可能化)
   useEffect(() => {
     const draggable = new Draggable(document.body, {
-      itemSelector: ".today-item, .issue-card",
+      itemSelector: ".today-item, .issue-card, .local-task-item",
       eventData: (eventEl) => {
         const el = eventEl as HTMLElement;
+        // ローカルメモタスクは issueKey を持たない
+        if (el.classList.contains("local-task-item")) {
+          const localId = el.dataset.localTaskId ?? "";
+          const title = el.dataset.localTaskTitle ?? "";
+          return {
+            title: `📝 ${title}`,
+            duration: "01:00",
+            extendedProps: { localTaskId: Number(localId), summary: title },
+          };
+        }
         const id = el.dataset.issueId ?? "";
         const issueKey = el.dataset.issueKey ?? "";
         const summary = el.dataset.issueSummary ?? "";
@@ -44,28 +54,32 @@ export function CalendarPane() {
     return () => draggable.destroy();
   }, []);
 
-  // 外部からドロップされたチケットを Google カレンダー予定として作成
+  // 外部からドロップされたチケット / メモタスクを Google カレンダー予定として作成
   const handleEventReceive = useCallback(async (arg: EventReceiveArg) => {
     setError(null);
     const issueKey = String(arg.event.extendedProps.issueKey ?? "");
     const summary = String(arg.event.extendedProps.summary ?? "");
+    const localTaskId = arg.event.extendedProps.localTaskId as number | undefined;
+    const isLocal = !!localTaskId;
     const start = arg.event.start;
     const end = arg.event.end;
-    if (!start || !issueKey) {
+    if (!start || (!issueKey && !isLocal)) {
       arg.event.remove();
       setError("ドラッグデータの読み取りに失敗しました");
       return;
     }
     try {
+      const title = isLocal ? `📝 ${summary}` : `${issueKey}: ${summary}`;
+      const body: Record<string, unknown> = {
+        title,
+        start: start.toISOString(),
+        end: end?.toISOString(),
+      };
+      if (issueKey) body.issueKey = issueKey;
       const res = await fetch("/api/google/calendar/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: `${issueKey}: ${summary}`,
-          start: start.toISOString(),
-          end: end?.toISOString(),
-          issueKey,
-        }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { message?: string };

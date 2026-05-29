@@ -28,6 +28,7 @@ export default function RootLayout({
           </Link>
           <nav className="nav">
             <Link href="/">ダッシュボード</Link>
+            <Link href="/kanban">カンバン</Link>
             <Link href="/issues">チケット一覧</Link>
             <Link href="/manual">マニュアル</Link>
             <Link href="/settings">設定</Link>
