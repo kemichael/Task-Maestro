@@ -2,7 +2,9 @@ import { getEnvStatus } from "@/lib/env";
 import { getAppSettings } from "@/lib/db/settingsRepository";
 import { getTodayList } from "@/lib/services/todayService";
 import { listLocalIssuesByIds } from "@/lib/services/backlogIssueService";
+import { getLocalTasksForToday } from "@/lib/services/localTaskService";
 import { TodayList } from "@/components/TodayList";
+import { LocalTaskList } from "@/components/LocalTaskList";
 import { CalendarPane } from "@/components/CalendarPane";
 import { SyncButton } from "@/components/SyncButton";
 import { CreateTicketLauncher } from "@/components/CreateTicketLauncher";
@@ -30,6 +32,7 @@ export default async function DashboardPage() {
   }
 
   const today = getTodayList();
+  const localTasks = getLocalTasksForToday();
 
   const parentIds = Array.from(
     new Set(today.map((i) => i.parentIssueId).filter((id): id is number => !!id)),
@@ -52,6 +55,7 @@ export default async function DashboardPage() {
       <div className="dashboard-grid">
         <section className="dashboard-left">
           <h2>今日やる</h2>
+          <LocalTaskList tasks={localTasks} />
           <TodayList issues={today} projects={settings.backlog.projects} parentMap={parentMap} />
         </section>
         <section className="dashboard-right">
