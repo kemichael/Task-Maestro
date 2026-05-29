@@ -24,6 +24,7 @@ export function getAppSettings(): AppSettings {
       backlog: { ...DEFAULT_APP_SETTINGS.backlog, ...(parsed.backlog ?? {}) },
       slack: { ...DEFAULT_APP_SETTINGS.slack, ...(parsed.slack ?? {}) },
       statusMapping: parsed.statusMapping ?? DEFAULT_APP_SETTINGS.statusMapping,
+      kanban: { ...DEFAULT_APP_SETTINGS.kanban, ...(parsed.kanban ?? {}) },
     };
   } catch (error) {
     throw new DatabaseError("設定の取得に失敗しました", error);

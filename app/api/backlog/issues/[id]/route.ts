@@ -21,6 +21,7 @@ export async function PATCH(
     const issue = await updateTicket(issueId, patch);
     revalidatePath("/issues");
     revalidatePath("/");
+    revalidatePath("/kanban");
     return ok(issue);
   } catch (error) {
     return errorResponse(error);

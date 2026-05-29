@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import type { AppSettings } from "@/lib/types/settings";
+import type { AppSettings, KanbanProjectMapping } from "@/lib/types/settings";
+import { KanbanMappingEditor } from "./KanbanMappingEditor";
 
 interface Props {
   initial: AppSettings;
@@ -261,6 +262,20 @@ export function SettingsForm({ initial }: Props) {
         <p className="hint">
           Status ID は Backlog の `/api/v2/projects/:projectId/statuses` で取得できる ID を指定してください。
         </p>
+      </section>
+
+      <section>
+        <h3>カンバンマッピング (Backlog ステータス → カンバン列)</h3>
+        <p className="hint">
+          各プロジェクトの Backlog ステータスをカンバンの 4 列 (未対応/処理中/処理済み/完了) に割り当てます。未割当のステータスはカンバンに表示されません。
+        </p>
+        <KanbanMappingEditor
+          projects={settings.backlog.projects}
+          mappings={settings.kanban?.projects ?? []}
+          onChange={(mappings: KanbanProjectMapping[]) =>
+            setSettings({ ...settings, kanban: { projects: mappings } })
+          }
+        />
       </section>
 
       <div className="settings-actions">

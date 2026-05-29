@@ -22,6 +22,16 @@ export interface StatusMapping {
   inProgressStatusId: number;
 }
 
+/**
+ * 各プロジェクトについて、Backlog のステータス ID → カンバン列 (todo/in_progress/resolved/done) を割り当てる。
+ * 設定画面で {Backlog プロジェクト} × {Backlog ステータス} の組ごとに 1 列を選ぶ。
+ */
+export interface KanbanProjectMapping {
+  projectId: number;
+  /** key は Backlog status_id (number)。値はカンバン列キー */
+  columnByStatusId: Record<number, string>;
+}
+
 export interface SlackWorkspaceSetting {
   workspaceId: string;
   workspaceName?: string;
@@ -35,6 +45,9 @@ export interface AppSettings {
   };
   slack: { workspaces: SlackWorkspaceSetting[] };
   statusMapping: StatusMapping[];
+  kanban: {
+    projects: KanbanProjectMapping[];
+  };
 }
 
 export const DEFAULT_APP_SETTINGS: AppSettings = {
@@ -42,6 +55,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   backlog: { projects: [] },
   slack: { workspaces: [] },
   statusMapping: [],
+  kanban: { projects: [] },
 };
 
 export type UserIdentityService = "slack" | "google" | "backlog";

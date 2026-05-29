@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getAppSettings, saveAppSettings } from "@/lib/db/settingsRepository";
 import { errorResponse, ok } from "@/lib/http/response";
+import { KANBAN_COLUMNS } from "@/lib/types/kanban";
 
 export const runtime = "nodejs";
 
@@ -28,6 +29,11 @@ const backlogSelfSchema = z.object({
   loginId: z.string().optional(),
 });
 
+const kanbanProjectMappingSchema = z.object({
+  projectId: z.number().int().positive(),
+  columnByStatusId: z.record(z.string(), z.enum(KANBAN_COLUMNS)),
+});
+
 const settingsSchema = z.object({
   ai: z.object({
     provider: z.enum(["openai", "claudeCode"]),
@@ -39,6 +45,9 @@ const settingsSchema = z.object({
   }),
   slack: z.object({ workspaces: z.array(workspaceSchema) }),
   statusMapping: z.array(statusMappingSchema),
+  kanban: z
+    .object({ projects: z.array(kanbanProjectMappingSchema) })
+    .default({ projects: [] }),
 });
 
 export async function GET() {
@@ -56,6 +65,7 @@ export async function PUT(req: NextRequest) {
     saveAppSettings(parsed);
     revalidatePath("/settings");
     revalidatePath("/");
+    revalidatePath("/kanban");
     return ok(parsed);
   } catch (error) {
     return errorResponse(error);
