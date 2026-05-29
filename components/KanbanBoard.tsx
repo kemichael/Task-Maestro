@@ -13,6 +13,7 @@ import {
   KANBAN_COLUMN_LABEL,
   type KanbanColumn,
 } from "@/lib/types/kanban";
+import { MarkdownView } from "./MarkdownView";
 
 interface Props {
   board: KanbanBoardData;
@@ -271,7 +272,16 @@ export function KanbanBoard({ board, kanbanMappings }: Props) {
                         </div>
                         <div className="kanban-card-title">{card.task.title}</div>
                         {card.task.notes && (
-                          <div className="kanban-card-notes">{card.task.notes}</div>
+                          <div className="kanban-card-notes-wrap">
+                            <div className="kanban-card-notes">{card.task.notes}</div>
+                            <div
+                              className="kanban-card-notes-popup"
+                              role="tooltip"
+                              aria-label="メモ全文"
+                            >
+                              <MarkdownView content={card.task.notes} />
+                            </div>
+                          </div>
                         )}
                       </>
                     )}

@@ -8,6 +8,7 @@ import {
   KANBAN_COLUMN_LABEL,
   type LocalTaskStatus,
 } from "@/lib/types/kanban";
+import { MarkdownView } from "./MarkdownView";
 
 interface Props {
   tasks: LocalTask[];
@@ -276,7 +277,16 @@ export function LocalTaskList({ tasks }: Props) {
                   <div className="local-task-body">
                     <div className="local-task-title">{task.title}</div>
                     {task.notes && (
-                      <div className="local-task-notes">{task.notes}</div>
+                      <div className="local-task-notes-wrap">
+                        <div className="local-task-notes">{task.notes}</div>
+                        <div
+                          className="local-task-notes-popup"
+                          role="tooltip"
+                          aria-label="メモ全文"
+                        >
+                          <MarkdownView content={task.notes} />
+                        </div>
+                      </div>
                     )}
                     {task.dueDate && (
                       <div className="local-task-due">📅 {task.dueDate}</div>
