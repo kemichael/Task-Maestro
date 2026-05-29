@@ -67,14 +67,11 @@ function getBacklogIssues(mode: KanbanFilterMode, today: string): BacklogIssue[]
   return findAll({ requireAssigned: !!selfUserId, assigneeIds: selfUserId ? [selfUserId] : undefined });
 }
 
-function getLocalTasksForMode(mode: KanbanFilterMode, today: string): LocalTask[] {
-  // 「今日」モード: 期限なし or 期限<=今日 のもの。done も含めて当日中の進捗確認に出す。
-  // 「担当全件」モード: 全件。done も表示。
-  const all = listLocalTasks(true);
-  if (mode === "today") {
-    return all.filter((t) => !t.dueDate || t.dueDate <= today);
-  }
-  return all;
+function getLocalTasksForMode(_mode: KanbanFilterMode, _today: string): LocalTask[] {
+  // ローカルメモタスクは Backlog と異なり「今日着手フラグ」を持たないため、
+  // ローカル分は「今日」/「担当全件」どちらのモードでも全件表示する。
+  // 期限による絞り込みは行わない (新規登録時に未来期限を付けても見失わないようにするため)。
+  return listLocalTasks(true);
 }
 
 export function getKanbanBoard(

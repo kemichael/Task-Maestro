@@ -12,7 +12,7 @@ export const runtime = "nodejs";
 
 const createSchema = z.object({
   title: z.string().trim().min(1, "タイトルは必須です").max(200),
-  notes: z.string().max(2000).optional().nullable(),
+  notes: z.string().max(20000).optional().nullable(),
   dueDate: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "YYYY-MM-DD 形式で指定してください")

@@ -9,11 +9,12 @@ import type { LocalTask, LocalTaskInput, LocalTaskPatch } from "../types/localTa
 import { todayJst } from "../utils/date";
 
 export function getLocalTasksForToday(
-  today: string = todayJst(),
+  _today: string = todayJst(),
 ): LocalTask[] {
-  // 「完了」のみ除外、それ以外 (todo/in_progress/resolved) は今日のリストに残す
-  // 期限なし or 期限 <= 今日 のものだけ
-  return listLocalTasks(false).filter((task) => !task.dueDate || task.dueDate <= today);
+  // 「完了」のみ除外、未完了 (todo/in_progress/resolved) は期限に関係なく全件表示。
+  // 期限なし・期限切れ・今日・未来いずれも表示し、新規登録したタスクが視界から
+  // 消えないようにする。並びは「期限なし末尾 → 期限昇順 → 作成昇順」 (リポジトリ側で固定)。
+  return listLocalTasks(false);
 }
 
 export function listAllLocalTasks(includeDone = false): LocalTask[] {
