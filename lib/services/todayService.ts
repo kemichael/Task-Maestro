@@ -6,6 +6,7 @@ import type { BacklogIssue } from "../types/backlog";
 import { MappingMissingError, NotFoundError } from "../errors";
 import { logger } from "../logger";
 import { isCompletedIssue } from "../utils/issueStatus";
+import { todayJst } from "../utils/date";
 
 function priorityRank(priority?: BacklogIssue["priority"]): number {
   if (!priority) return 4;
@@ -13,7 +14,7 @@ function priorityRank(priority?: BacklogIssue["priority"]): number {
   return map[priority.name] ?? 4;
 }
 
-export function getTodayList(today: string = new Date().toISOString().slice(0, 10)): BacklogIssue[] {
+export function getTodayList(today: string = todayJst()): BacklogIssue[] {
   const issues = listTodayIssues(today);
   const dedup = new Map<number, BacklogIssue>();
   for (const issue of issues) {

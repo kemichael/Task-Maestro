@@ -167,12 +167,16 @@ export function IssueListClient({ issues, parentMap = {} }: Props) {
   }, [issues]);
 
   const filtered = useMemo(() => {
-    const today = new Date().toISOString().slice(0, 10);
+    // 「今日」「今週」「今月」は JST 基準で算出 (UTC との 9h ズレ防止)
     const now = new Date();
-    const endOfWeek = new Date(now);
-    endOfWeek.setDate(now.getDate() + (7 - now.getDay()));
+    const jstNow = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+    const today = jstNow.toISOString().slice(0, 10);
+    const endOfWeek = new Date(jstNow);
+    endOfWeek.setUTCDate(jstNow.getUTCDate() + (7 - jstNow.getUTCDay()));
     const endOfWeekStr = endOfWeek.toISOString().slice(0, 10);
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
+    const endOfMonth = new Date(Date.UTC(jstNow.getUTCFullYear(), jstNow.getUTCMonth() + 1, 0))
+      .toISOString()
+      .slice(0, 10);
 
     const matched = issues.filter((i) => {
       if (keyword) {

@@ -13,6 +13,7 @@ import type { BacklogIssue } from "../types/backlog";
 import type { TicketDraft } from "../types/ticket";
 import type { PatchIssueInput } from "../validation/ticketSchema";
 import { logger } from "../logger";
+import { todayJst } from "../utils/date";
 
 export type SyncResult =
   | { skipped: "no_projects" | "self_user_id_missing" }
@@ -132,7 +133,7 @@ export function listLocalIssuesByIds(ids: number[]): BacklogIssue[] {
   return findByIds(ids);
 }
 
-export function listTodayIssues(today: string = new Date().toISOString().slice(0, 10)): BacklogIssue[] {
+export function listTodayIssues(today: string = todayJst()): BacklogIssue[] {
   const settings = getAppSettings();
   const selfUserId = settings.backlog.self?.userId;
   return findToday(today, selfUserId);
