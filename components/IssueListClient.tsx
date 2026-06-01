@@ -95,8 +95,9 @@ function compare(a: BacklogIssue, b: BacklogIssue, key: SortKey, order: SortOrde
 
 /**
  * 親子グルーピングソート:
- * - 親候補 (親なし or 親が一覧にない孤児) を issueKey でソート
- * - 各親の直後にその子 (issueKey でソート) を並べる
+ * - 親候補 (親なし or 親が一覧にない孤児) を期限昇順 (期限なし末尾) でソート
+ * - 各親の直後にその子を同じく期限昇順 (期限なし末尾) で並べる
+ * - 同 dueDate は issueKey でタイブレーク
  */
 function sortByParentChild(issues: BacklogIssue[], order: SortOrder): BacklogIssue[] {
   const sign = order === "asc" ? 1 : -1;
@@ -114,14 +115,26 @@ function sortByParentChild(issues: BacklogIssue[], order: SortOrder): BacklogIss
       parents.push(i);
     }
   }
-  parents.sort((a, b) => a.issueKey.localeCompare(b.issueKey) * sign);
+  // 同階層内のコンパレータ: 期限昇順 (期限なし末尾) → issueKey 昇順
+  // 期限なしを sign に関係なく末尾固定にするため、order 反転時も「期限なし vs 期限あり」の
+  // 大小関係は常に「期限なしが後ろ」になるよう、null チェックを分岐させる。
+  const cmpByDue = (a: BacklogIssue, b: BacklogIssue): number => {
+    if (a.dueDate && !b.dueDate) return -1;
+    if (!a.dueDate && b.dueDate) return 1;
+    if (a.dueDate && b.dueDate) {
+      const diff = a.dueDate.localeCompare(b.dueDate);
+      if (diff !== 0) return diff * sign;
+    }
+    return a.issueKey.localeCompare(b.issueKey) * sign;
+  };
+  parents.sort(cmpByDue);
 
   const result: BacklogIssue[] = [];
   for (const parent of parents) {
     result.push(parent);
     const kids = childrenMap.get(parent.id);
     if (kids) {
-      kids.sort((a, b) => a.issueKey.localeCompare(b.issueKey));
+      kids.sort(cmpByDue);
       result.push(...kids);
     }
   }
@@ -146,8 +159,8 @@ export function IssueListClient({ issues, parentMap = {} }: Props) {
   const [priorityFilter, setPriorityFilter] = useState<number | "">("");
   const [dueFilter, setDueFilter] = useState<"all" | "overdue" | "today" | "thisWeek" | "thisMonth" | "noDate">("all");
 
-  // ソート
-  const [sortKey, setSortKey] = useState<SortKey>("due");
+  // ソート: デフォルトは「親子順 (期限昇順、期限なし末尾)」
+  const [sortKey, setSortKey] = useState<SortKey>("parent");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
 
   const projectOptions = useMemo(() => {
