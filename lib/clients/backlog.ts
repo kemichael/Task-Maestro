@@ -131,10 +131,11 @@ export async function createIssue(payload: CreateIssuePayload): Promise<BacklogI
   body.set("projectId", String(payload.projectId));
   body.set("summary", payload.summary);
   if (payload.description !== undefined) body.set("description", payload.description);
-  if (payload.priority) {
-    const priorityId = priorityNameToId(payload.priority);
-    if (priorityId) body.set("priorityId", String(priorityId));
-  }
+  // priorityId は Backlog API 上 required (未指定だと 400 "priorityId is required.")
+  // UI 側で「未指定」を選択された場合は中 (priorityId=3) をデフォルトとして送出する。
+  const priorityId =
+    (payload.priority ? priorityNameToId(payload.priority) : undefined) ?? 3;
+  body.set("priorityId", String(priorityId));
   if (payload.dueDate) body.set("dueDate", payload.dueDate);
   if (payload.assigneeId !== undefined) body.set("assigneeId", String(payload.assigneeId));
   if (payload.categoryIds) {
