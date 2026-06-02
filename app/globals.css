@@ -1383,7 +1383,6 @@ textarea:focus {
   white-space: pre-wrap;
 }
 
-
 .markdown-body {
   font-size: 13px;
   line-height: 1.65;
@@ -1395,19 +1394,28 @@ textarea:focus {
 .markdown-body h3 {
   margin-top: 1em;
   margin-bottom: 0.5em;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-accent);
 }
 
 .markdown-body pre {
-  background: var(--color-surface-muted);
+  background: #000;
   padding: var(--spacing-3);
-  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--color-accent);
+  border-top: 1px solid var(--color-border);
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
   overflow-x: auto;
-  border: 1px solid var(--color-border);
+  font-family: var(--font-mono);
+  color: var(--color-green-acid);
 }
 
 .markdown-body code {
   font-family: var(--font-mono);
   font-size: 12px;
+  color: var(--color-accent);
 }
 
 .markdown-body table {
@@ -1421,34 +1429,53 @@ textarea:focus {
   padding: 4px 8px;
 }
 
+.markdown-body table th {
+  color: var(--color-accent);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+
 .markdown-body blockquote {
-  border-left: 3px solid var(--color-border-strong);
+  border-left: 3px solid var(--color-accent);
   padding-left: var(--spacing-3);
   color: var(--color-text-muted);
   margin-left: 0;
+  background: var(--color-accent-soft);
+  padding-top: var(--spacing-2);
+  padding-bottom: var(--spacing-2);
 }
 
 .markdown-body a {
-  color: var(--color-accent-blue);
+  color: var(--color-cyan);
+  text-decoration: underline;
+}
+
+.markdown-body a:hover {
+  color: var(--color-cyan);
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
 }
 
 .markdown-empty {
   color: var(--color-text-subtle);
-  font-size: 13px;
+  font-family: var(--font-mono);
+  font-size: 11px;
 }
 
 .markdown-preview-toggle {
   margin: var(--spacing-1) 0 var(--spacing-3);
   padding: var(--spacing-2) var(--spacing-3);
   border: 1px dashed var(--color-border-strong);
-  border-radius: var(--radius-sm);
   background: var(--color-surface-muted);
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
 }
 
 .markdown-preview-toggle summary {
   cursor: pointer;
-  color: var(--color-text-muted);
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .markdown-preview-toggle[open] summary {
@@ -1571,9 +1598,17 @@ textarea:focus {
 .manual-page .markdown-body {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
   padding: var(--spacing-6);
   box-shadow: var(--shadow-sm);
+  position: relative;
+  clip-path: polygon(
+    14px 0,
+    100% 0,
+    100% calc(100% - 14px),
+    calc(100% - 14px) 100%,
+    0 100%,
+    0 14px
+  );
 }
 
 /* =============================================================
@@ -1581,7 +1616,34 @@ textarea:focus {
    ============================================================= */
 
 .calendar-pane {
-  font-size: 13px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.calendar-pane .fc-toolbar-title {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-accent);
+}
+
+.calendar-pane .fc-button {
+  background: transparent;
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.calendar-pane .fc-button:hover {
+  background: var(--color-accent-soft);
+  color: var(--color-accent-hot);
+}
+
+.calendar-pane .fc-button-active {
+  background: var(--color-accent) !important;
+  color: var(--color-text-on-yellow) !important;
 }
 
 /* =============================================================
@@ -2237,7 +2299,7 @@ textarea:focus {
 }
 
 /* =============================================================
-   スクロールバー (Webkit)
+   スクロールバー
    ============================================================= */
 
 ::-webkit-scrollbar {
@@ -2251,12 +2313,12 @@ textarea:focus {
 
 ::-webkit-scrollbar-thumb {
   background: var(--color-border-strong);
-  border-radius: 5px;
   border: 2px solid var(--color-bg);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-subtle);
+  background: var(--color-accent);
+  box-shadow: 0 0 6px var(--color-accent);
 }
 
 /* =============================================================
