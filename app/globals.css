@@ -1461,16 +1461,19 @@ textarea:focus {
 
 .env-table {
   border-collapse: collapse;
-  font-size: 13px;
+  font-family: var(--font-mono);
+  font-size: 12px;
   margin-bottom: var(--spacing-4);
   width: 100%;
 }
 
 .env-table th {
   text-align: left;
-  font-weight: 500;
-  color: var(--color-text-muted);
-  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-accent);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 
 .env-table th,
@@ -1480,12 +1483,14 @@ textarea:focus {
 }
 
 .status-ok {
-  color: var(--color-success);
-  font-weight: 500;
+  color: var(--color-green-acid);
+  font-weight: 700;
+  text-shadow: 0 0 6px rgba(57, 255, 20, 0.5);
 }
 
 .status-missing {
-  color: var(--color-danger);
+  color: var(--color-magenta);
+  font-weight: 700;
 }
 
 .settings-form section {
@@ -1493,8 +1498,31 @@ textarea:focus {
   padding: var(--spacing-5);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  position: relative;
   box-shadow: var(--shadow-sm);
+  clip-path: polygon(
+    12px 0,
+    100% 0,
+    100% calc(100% - 12px),
+    calc(100% - 12px) 100%,
+    0 100%,
+    0 12px
+  );
+}
+
+.settings-form section::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 3px;
+  background: repeating-linear-gradient(
+    45deg,
+    var(--color-accent) 0 10px,
+    #000000 10px 20px
+  );
+  pointer-events: none;
 }
 
 .settings-form .row {
@@ -1521,13 +1549,15 @@ textarea:focus {
 }
 
 .sync-message {
-  font-size: 12px;
-  color: var(--color-success);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-green-acid);
 }
 
 .sync-error {
-  font-size: 12px;
-  color: var(--color-danger);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-magenta);
 }
 
 /* =============================================================
@@ -2113,7 +2143,7 @@ textarea:focus {
 }
 
 /* =============================================================
-   カンバンマッピング (設定画面)
+   カンバンマッピング
    ============================================================= */
 
 .kanban-mapping-editor {
@@ -2123,9 +2153,8 @@ textarea:focus {
 }
 
 .kanban-mapping-project {
-  background: var(--color-surface);
+  background: var(--color-surface-muted);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
   padding: var(--spacing-3);
 }
 
@@ -2142,13 +2171,15 @@ textarea:focus {
 
 .kanban-mapping-project-header .muted {
   color: var(--color-text-subtle);
-  font-size: 11px;
+  font-family: var(--font-mono);
+  font-size: 10px;
 }
 
 .kanban-mapping-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
 }
 
 .kanban-mapping-table th,
@@ -2159,41 +2190,50 @@ textarea:focus {
 }
 
 .kanban-mapping-table th {
-  color: var(--color-text-muted);
-  font-weight: 500;
+  color: var(--color-accent);
+  font-weight: 600;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 
 .status-swatch {
   display: inline-block;
   width: 10px;
   height: 10px;
-  border-radius: 50%;
+  border-radius: 0;
   margin-right: 6px;
   vertical-align: middle;
+  box-shadow: 0 0 6px currentColor;
 }
 
 .local-task-status {
-  font-size: 11px;
+  font-family: var(--font-mono);
+  font-size: 10px;
   padding: 2px 4px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
   background: var(--color-surface);
   flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .local-task-status[data-status="done"] {
-  background: var(--color-success-soft);
-  color: var(--color-success);
+  background: var(--color-green-soft);
+  color: var(--color-green-acid);
+  border-color: var(--color-green-acid);
 }
 
 .local-task-status[data-status="in_progress"] {
-  background: var(--color-accent-blue-soft);
-  color: var(--color-accent-blue);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
 .local-task-status[data-status="resolved"] {
-  background: var(--color-primary-soft);
-  color: var(--color-primary-hover);
+  background: var(--color-cyan-soft);
+  color: var(--color-cyan);
+  border-color: var(--color-cyan);
 }
 
 /* =============================================================
