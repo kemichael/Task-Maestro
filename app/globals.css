@@ -1098,9 +1098,12 @@ button:not(:disabled):active {
 }
 
 .form-field-label {
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: 10px;
   font-weight: 500;
-  color: var(--color-text-muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-accent);
 }
 
 .form-row {
@@ -1120,9 +1123,9 @@ select,
 textarea {
   padding: 8px 12px;
   border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   font-size: 13px;
-  font-family: inherit;
+  font-family: var(--font-mono);
   background: var(--color-surface);
   color: var(--color-text);
   transition: border-color 0.15s, box-shadow 0.15s;
@@ -1135,8 +1138,8 @@ input[type="email"]:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-soft);
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-glow);
 }
 
 /* =============================================================
