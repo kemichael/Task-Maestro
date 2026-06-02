@@ -502,8 +502,15 @@ button:not(:disabled):active {
 .card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
+  clip-path: polygon(
+    12px 0,
+    100% 0,
+    100% calc(100% - 12px),
+    calc(100% - 12px) 100%,
+    0 100%,
+    0 12px
+  );
 }
 
 /* =============================================================
@@ -512,91 +519,132 @@ button:not(:disabled):active {
 
 .error-banner {
   padding: var(--spacing-3) var(--spacing-4);
-  background: var(--color-danger-soft);
-  border: 1px solid rgba(248, 113, 113, 0.4);
-  border-radius: var(--radius-sm);
-  color: #fda4a4;
+  background: var(--color-magenta-soft);
+  border-left: 4px solid var(--color-magenta);
+  border-top: 1px solid rgba(255, 0, 60, 0.4);
+  border-right: 1px solid rgba(255, 0, 60, 0.4);
+  border-bottom: 1px solid rgba(255, 0, 60, 0.4);
+  color: #ffb0bc;
   margin-bottom: var(--spacing-3);
   font-size: 13px;
+  font-family: var(--font-mono);
 }
 
 .info-banner {
   padding: var(--spacing-3) var(--spacing-4);
-  background: var(--color-accent-blue-soft);
-  border: 1px solid rgba(96, 165, 250, 0.4);
-  border-radius: var(--radius-sm);
-  color: #93c5fd;
+  background: var(--color-cyan-soft);
+  border-left: 4px solid var(--color-cyan);
+  border-top: 1px solid rgba(0, 240, 255, 0.4);
+  border-right: 1px solid rgba(0, 240, 255, 0.4);
+  border-bottom: 1px solid rgba(0, 240, 255, 0.4);
+  color: #aef0ff;
   margin-bottom: var(--spacing-3);
   font-size: 13px;
+  font-family: var(--font-mono);
 }
 
 .hint {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--color-text-muted);
   margin-top: var(--spacing-2);
+  font-family: var(--font-mono);
+  letter-spacing: 0.05em;
 }
 
 /* =============================================================
-   バッジ
+   バッジ (識別色を Cyberpunk パレットに統一)
    ============================================================= */
 
 .badge {
   display: inline-flex;
   align-items: center;
   padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 500;
+  border-radius: 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
   line-height: 1.4;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   border: 1px solid transparent;
 }
 
 .badge-todo {
-  background: rgba(129, 140, 248, 0.15);
-  color: #a5b4fc;
-  border-color: rgba(129, 140, 248, 0.3);
+  background: var(--color-cyan-soft);
+  color: var(--color-cyan);
+  border-color: rgba(0, 240, 255, 0.5);
 }
 
 .badge-progress {
-  background: rgba(251, 191, 36, 0.15);
-  color: #fcd34d;
-  border-color: rgba(251, 191, 36, 0.3);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
 .badge-resolved {
-  background: rgba(52, 211, 153, 0.15);
-  color: #6ee7b7;
-  border-color: rgba(52, 211, 153, 0.3);
+  background: var(--color-green-soft);
+  color: var(--color-green-acid);
+  border-color: rgba(57, 255, 20, 0.5);
 }
 
 .badge-done {
-  background: rgba(148, 163, 184, 0.12);
-  color: var(--color-text-subtle);
+  background: var(--color-surface-alt);
+  color: var(--color-text-muted);
   border-color: var(--color-border-strong);
 }
 
 .badge-high {
-  background: rgba(248, 113, 113, 0.15);
-  color: #fca5a5;
-  border-color: rgba(248, 113, 113, 0.35);
+  background: var(--color-magenta-soft);
+  color: var(--color-magenta);
+  border-color: var(--color-magenta);
 }
 
 .badge-normal {
-  background: var(--color-surface-muted);
+  background: var(--color-surface-alt);
   color: var(--color-text-muted);
   border-color: var(--color-border);
 }
 
 .badge-low {
-  background: rgba(52, 211, 153, 0.1);
-  color: #86efac;
-  border-color: rgba(52, 211, 153, 0.25);
+  background: var(--color-green-soft);
+  color: var(--color-green-acid);
+  border-color: rgba(57, 255, 20, 0.3);
 }
 
 .badge-muted {
-  background: var(--color-surface-muted);
+  background: var(--color-surface-alt);
   color: var(--color-text-muted);
   border-color: var(--color-border);
+}
+
+/* =============================================================
+   キーチップ (PROJ-123 表示)
+   ============================================================= */
+
+.issue-key-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  background: var(--color-accent);
+  color: var(--color-text-on-yellow);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  flex-shrink: 0;
+  clip-path: polygon(
+    4px 0,
+    100% 0,
+    100% calc(100% - 4px),
+    calc(100% - 4px) 100%,
+    0 100%,
+    0 4px
+  );
+}
+
+.issue-key-chip.large {
+  font-size: 12px;
+  padding: 4px 10px;
 }
 
 /* =============================================================
@@ -923,26 +971,6 @@ button:not(:disabled):active {
   color: #fcd34d;
   border-radius: var(--radius-sm);
   font-size: 11px;
-}
-
-/* キーチップ */
-
-.issue-key-chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  background: var(--color-accent-blue-soft);
-  color: #93c5fd;
-  border-radius: var(--radius-sm);
-  font-size: 11px;
-  font-family: var(--font-mono);
-  font-weight: 600;
-  flex-shrink: 0;
-}
-
-.issue-key-chip.large {
-  font-size: 13px;
-  padding: 4px 10px;
 }
 
 /* 星マーク (今日やる) */
