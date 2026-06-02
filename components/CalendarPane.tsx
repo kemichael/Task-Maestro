@@ -26,9 +26,11 @@ export function CalendarPane() {
   const [error, setError] = useState<string | null>(null);
 
   // FullCalendar の Draggable を初期化 (document.body を監視して .today-item / .issue-card / .local-task-item を D&D 可能化)
+  // インライン編集中のメモタスク (.local-task-item.is-editing) は、入力欄が onPointerDown の
+  // preventDefault / preventSelection で編集不能になるのを避けるため除外する。
   useEffect(() => {
     const draggable = new Draggable(document.body, {
-      itemSelector: ".today-item, .issue-card, .local-task-item",
+      itemSelector: ".today-item, .issue-card, .local-task-item:not(.is-editing)",
       eventData: (eventEl) => {
         const el = eventEl as HTMLElement;
         // ローカルメモタスクは issueKey を持たない

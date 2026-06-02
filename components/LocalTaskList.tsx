@@ -8,7 +8,7 @@ import {
   KANBAN_COLUMN_LABEL,
   type LocalTaskStatus,
 } from "@/lib/types/kanban";
-import { MarkdownView } from "./MarkdownView";
+import { NotesHoverPopover } from "./NotesHoverPopover";
 import {
   daysOverdueJst,
   isDueTodayJst,
@@ -223,7 +223,7 @@ export function LocalTaskList({ tasks }: Props) {
             return (
               <li
                 key={task.id}
-                className={`local-task-item${completed ? " completed" : ""} ${dueClass}`.trim()}
+                className={`local-task-item${isEditing ? " is-editing" : ""}${completed ? " completed" : ""} ${dueClass}`.trim()}
                 data-local-task-id={task.id}
                 data-local-task-title={task.title}
               >
@@ -294,16 +294,10 @@ export function LocalTaskList({ tasks }: Props) {
                   <div className="local-task-body">
                     <div className="local-task-title">{task.title}</div>
                     {task.notes && (
-                      <div className="local-task-notes-wrap">
-                        <div className="local-task-notes">{task.notes}</div>
-                        <div
-                          className="local-task-notes-popup"
-                          role="tooltip"
-                          aria-label="メモ全文"
-                        >
-                          <MarkdownView content={task.notes} />
-                        </div>
-                      </div>
+                      <NotesHoverPopover
+                        content={task.notes}
+                        classPrefix="local-task-notes"
+                      />
                     )}
                     {task.dueDate && (
                       <div className={`local-task-due ${dueClass}`.trim()}>
