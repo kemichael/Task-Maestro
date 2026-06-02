@@ -523,6 +523,7 @@ export function IssueListClient({ issues, parentMap = {} }: Props) {
                   )}
                   <div className="issue-card-title-row">
                     <span className="issue-key-chip">{issue.issueKey}</span>
+                    <span className="cyber-label">{"ISSUE →"}</span>
                     <span className="issue-card-title">{issue.summary}</span>
                   </div>
                   <div className="issue-card-meta">
