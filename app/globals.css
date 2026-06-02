@@ -676,10 +676,34 @@ button:not(:disabled):active {
 .dashboard-left,
 .dashboard-right {
   background: var(--color-surface);
-  border-radius: var(--radius-md);
   padding: var(--spacing-4);
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-sm);
+  position: relative;
+  clip-path: polygon(
+    12px 0,
+    100% 0,
+    100% calc(100% - 12px),
+    calc(100% - 12px) 100%,
+    0 100%,
+    0 12px
+  );
+}
+
+.dashboard-left::before,
+.dashboard-right::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 3px;
+  background: repeating-linear-gradient(
+    45deg,
+    var(--color-accent) 0 10px,
+    #000000 10px 20px
+  );
+  pointer-events: none;
 }
 
 /* =============================================================
@@ -703,9 +727,10 @@ button:not(:disabled):active {
   padding: var(--spacing-6);
   text-align: center;
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-family: var(--font-mono);
+  font-size: 12px;
   background: var(--color-surface-muted);
-  border-radius: var(--radius-sm);
+  border: 1px dashed var(--color-border-strong);
 }
 
 .today-list ul {
@@ -724,14 +749,21 @@ button:not(:disabled):active {
   padding: var(--spacing-3);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
   cursor: grab;
   transition: border-color 0.15s, box-shadow 0.15s;
+  clip-path: polygon(
+    8px 0,
+    100% 0,
+    100% calc(100% - 8px),
+    calc(100% - 8px) 100%,
+    0 100%,
+    0 8px
+  );
 }
 
 .today-item:hover {
-  border-color: var(--color-primary);
-  box-shadow: var(--shadow-sm);
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-glow);
 }
 
 .today-item:active {
@@ -740,17 +772,16 @@ button:not(:disabled):active {
 
 .today-item .check-btn {
   padding: 4px 8px;
-  font-size: 12px;
-  background: var(--color-primary-soft);
-  border: 1px solid var(--color-primary);
-  color: var(--color-primary-hover);
+  font-size: 10px;
+  background: var(--color-accent-soft);
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent);
   flex-shrink: 0;
-  border-radius: var(--radius-sm);
 }
 
 .today-item .check-btn:hover:not(:disabled) {
-  background: var(--color-primary);
-  color: var(--color-text-on-primary);
+  background: var(--color-accent);
+  color: var(--color-text-on-yellow);
 }
 
 .today-body {
@@ -776,7 +807,8 @@ button:not(:disabled):active {
 }
 
 .today-flag {
-  font-size: 11px;
+  font-family: var(--font-mono);
+  font-size: 10px;
   color: var(--color-text-muted);
   display: flex;
   align-items: center;
@@ -1470,15 +1502,37 @@ textarea:focus {
 }
 
 /* =============================================================
-   メモタスク (Backlog 非依存のローカルタスク)
+   メモタスク
    ============================================================= */
 
 .local-tasks {
   margin-bottom: var(--spacing-4);
   padding: var(--spacing-3);
-  background: var(--color-accent-yellow-soft);
-  border: 1px solid var(--color-accent-yellow);
-  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-accent);
+  position: relative;
+  clip-path: polygon(
+    12px 0,
+    100% 0,
+    100% calc(100% - 12px),
+    calc(100% - 12px) 100%,
+    0 100%,
+    0 12px
+  );
+}
+
+.local-tasks::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 3px;
+  background: repeating-linear-gradient(
+    45deg,
+    var(--color-accent) 0 10px,
+    #000000 10px 20px
+  );
 }
 
 .local-tasks-header {
@@ -1489,9 +1543,12 @@ textarea:focus {
 }
 
 .local-tasks-title {
+  font-family: var(--font-display);
   font-size: 13px;
-  font-weight: 600;
-  color: var(--color-text);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
 }
 
 .local-task-form {
@@ -1500,9 +1557,8 @@ textarea:focus {
   gap: var(--spacing-2);
   padding: var(--spacing-3);
   margin-bottom: var(--spacing-2);
-  background: var(--color-surface);
+  background: var(--color-surface-muted);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
 }
 
 .local-task-form input[type="text"],
@@ -1511,10 +1567,9 @@ textarea:focus {
 .local-task-edit textarea {
   width: 100%;
   padding: 6px 8px;
-  font-family: var(--font-sans);
+  font-family: var(--font-mono);
   font-size: 13px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
   background: var(--color-surface);
 }
 
@@ -1536,8 +1591,11 @@ textarea:focus {
   display: flex;
   align-items: center;
   gap: var(--spacing-1);
-  font-size: 12px;
-  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-accent);
 }
 
 .local-task-form-actions {
@@ -1561,14 +1619,21 @@ textarea:focus {
   padding: var(--spacing-2) var(--spacing-3);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
   cursor: grab;
   transition: border-color 0.15s, box-shadow 0.15s;
+  clip-path: polygon(
+    8px 0,
+    100% 0,
+    100% calc(100% - 8px),
+    calc(100% - 8px) 100%,
+    0 100%,
+    0 8px
+  );
 }
 
 .local-task-item:hover {
-  border-color: var(--color-accent-yellow);
-  box-shadow: var(--shadow-sm);
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-glow);
 }
 
 .local-task-item:active {
@@ -1576,7 +1641,7 @@ textarea:focus {
 }
 
 .local-task-item.completed {
-  opacity: 0.55;
+  opacity: 0.5;
 }
 
 .local-task-item.completed .local-task-title {
@@ -1586,6 +1651,7 @@ textarea:focus {
 .local-task-check {
   margin-top: 3px;
   flex-shrink: 0;
+  accent-color: var(--color-accent);
 }
 
 .local-task-body {
@@ -1598,7 +1664,7 @@ textarea:focus {
 
 .local-task-title {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--color-text);
   word-break: break-word;
 }
@@ -1631,9 +1697,8 @@ textarea:focus {
   max-height: 420px;
   overflow: auto;
   padding: var(--spacing-3) var(--spacing-4);
-  background: var(--color-surface-hover);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-accent);
   box-shadow: var(--shadow-lg);
   color: var(--color-text);
 }
@@ -1656,8 +1721,10 @@ textarea:focus {
 }
 
 .local-task-due {
-  font-size: 11px;
+  font-family: var(--font-mono);
+  font-size: 10px;
   color: var(--color-text-muted);
+  letter-spacing: 0.05em;
 }
 
 .local-task-edit {

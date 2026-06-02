@@ -54,11 +54,13 @@ export default async function DashboardPage() {
       </div>
       <div className="dashboard-grid">
         <section className="dashboard-left">
+          <span className="cyber-label" style={{ display: "block", marginBottom: 4 }}>{"DAILY OPS →"}</span>
           <h2>今日やる</h2>
           <LocalTaskList tasks={localTasks} />
           <TodayList issues={today} projects={settings.backlog.projects} parentMap={parentMap} />
         </section>
         <section className="dashboard-right">
+          <span className="cyber-label" style={{ display: "block", marginBottom: 4 }}>{"CALENDAR →"}</span>
           <h2>カレンダー</h2>
           <CalendarPane />
         </section>
