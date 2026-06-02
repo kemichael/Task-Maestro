@@ -188,6 +188,142 @@ h3 {
 }
 
 /* =============================================================
+   Cyberpunk ユーティリティ
+   ============================================================= */
+
+/* クリップドコーナー */
+.cyber-clip {
+  clip-path: polygon(
+    12px 0,
+    100% 0,
+    100% calc(100% - 12px),
+    calc(100% - 12px) 100%,
+    0 100%,
+    0 12px
+  );
+  border-radius: 0 !important;
+}
+
+.cyber-clip-sm {
+  clip-path: polygon(
+    8px 0,
+    100% 0,
+    100% calc(100% - 8px),
+    calc(100% - 8px) 100%,
+    0 100%,
+    0 8px
+  );
+  border-radius: 0 !important;
+}
+
+/* ハザードストライプ帯 (黒/黄 45度) */
+.cyber-hazard {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--color-accent) 0 12px,
+    #000000 12px 24px
+  );
+  height: 8px;
+}
+
+.cyber-hazard-danger {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--color-magenta) 0 12px,
+    #000000 12px 24px
+  );
+}
+
+/* テクニカルラベル (XXX → 風) */
+.cyber-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.cyber-label-cyan {
+  color: var(--color-cyan);
+}
+
+/* ティックマーカー (端の目盛り) */
+.cyber-tick {
+  height: 8px;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0 7px,
+    var(--color-border) 7px 8px
+  );
+}
+
+/* ホットボーダー (hover / focus 用) */
+.cyber-hot {
+  border-color: var(--color-accent) !important;
+  box-shadow: var(--shadow-glow) !important;
+}
+
+/* グリッチ (ロゴ・タイトルで使用) */
+@keyframes cyber-glitch {
+  0%,
+  92%,
+  100% {
+    transform: translate(0);
+    text-shadow: none;
+    clip-path: none;
+  }
+  93% {
+    transform: translate(-2px, 0);
+    text-shadow: 1px 0 var(--color-cyan), -1px 0 var(--color-magenta);
+  }
+  95% {
+    transform: translate(2px, 0);
+    text-shadow: -1px 0 var(--color-cyan), 1px 0 var(--color-magenta);
+  }
+  97% {
+    transform: translate(-1px, 1px);
+    text-shadow: 1px 0 var(--color-cyan), -1px 0 var(--color-magenta);
+  }
+}
+
+.cyber-glitch {
+  animation: cyber-glitch 4s steps(1, end) infinite;
+}
+
+/* コーナーアンカー (大カードの四隅に L 字) */
+.cyber-corner {
+  position: relative;
+}
+
+.cyber-corner::before,
+.cyber-corner::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--color-accent);
+  pointer-events: none;
+}
+
+.cyber-corner::before {
+  top: 0;
+  left: 0;
+  border-right: none;
+  border-bottom: none;
+}
+
+.cyber-corner::after {
+  bottom: 0;
+  right: 0;
+  border-left: none;
+  border-top: none;
+}
+
+/* =============================================================
    ヘッダ
    ============================================================= */
 
