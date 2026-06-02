@@ -332,24 +332,52 @@ h3 {
   align-items: center;
   gap: var(--spacing-6);
   padding: var(--spacing-3) var(--spacing-6);
-  background: rgba(19, 24, 38, 0.7);
+  background: linear-gradient(180deg, #050709 0%, rgba(10, 14, 20, 0.92) 100%);
   backdrop-filter: saturate(180%) blur(14px);
   -webkit-backdrop-filter: saturate(180%) blur(14px);
-  border-bottom: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-accent);
+  border-bottom: 1px solid var(--color-accent);
   position: sticky;
   top: 0;
   z-index: 100;
+  box-shadow: 0 1px 0 rgba(252, 238, 10, 0.25);
+}
+
+.app-header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -9px;
+  height: 4px;
+  background: repeating-linear-gradient(
+    45deg,
+    var(--color-accent) 0 12px,
+    #000000 12px 24px
+  );
 }
 
 .app-header .brand {
   display: inline-flex;
   align-items: center;
+  position: relative;
 }
 
 .brand-logo {
   height: 32px;
   width: auto;
   object-fit: contain;
+  filter: drop-shadow(0 0 6px rgba(252, 238, 10, 0.35));
+  animation: cyber-glitch 4s steps(1, end) infinite;
+}
+
+.app-header .system-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--color-green-acid);
+  text-transform: uppercase;
+  text-shadow: 0 0 8px rgba(57, 255, 20, 0.5);
 }
 
 .app-header .nav {
@@ -358,23 +386,40 @@ h3 {
 }
 
 .app-header .nav a {
+  position: relative;
   padding: var(--spacing-2) var(--spacing-3);
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-  font-weight: 500;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+  font-weight: 600;
   color: var(--color-text-muted);
-  transition: background 0.15s, color 0.15s;
+  transition: color 0.15s, background 0.15s;
 }
 
 .app-header .nav a:hover {
-  background: var(--color-surface-muted);
-  color: var(--color-text);
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  text-shadow: var(--shadow-glow);
+}
+
+.app-header .nav a.is-active::after {
+  content: "";
+  position: absolute;
+  left: var(--spacing-3);
+  right: var(--spacing-3);
+  bottom: 2px;
+  height: 2px;
+  background: var(--color-accent);
+  box-shadow: var(--shadow-glow);
 }
 
 .app-main {
   padding: var(--spacing-6);
   max-width: 1500px;
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
 /* =============================================================

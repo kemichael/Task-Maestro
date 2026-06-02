@@ -51,6 +51,7 @@ export default function RootLayout({
               className="brand-logo"
             />
           </Link>
+          <span className="system-tag" aria-hidden="true">{"// SYSTEM ONLINE"}</span>
           <nav className="nav">
             <Link href="/">ダッシュボード</Link>
             <Link href="/kanban">カンバン</Link>
