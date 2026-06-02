@@ -1149,7 +1149,7 @@ textarea:focus {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(5, 8, 14, 0.65);
+  background: rgba(0, 0, 0, 0.78);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   display: flex;
@@ -1158,15 +1158,52 @@ textarea:focus {
   z-index: 1000;
 }
 
+.modal-backdrop::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.06) 0 1px,
+    transparent 1px 3px
+  );
+  mix-blend-mode: overlay;
+}
+
 .modal {
+  position: relative;
   background: var(--color-surface);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-strong);
   padding: var(--spacing-6);
   width: 560px;
   max-width: 90vw;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: var(--shadow-lg);
+  clip-path: polygon(
+    14px 0,
+    100% 0,
+    100% calc(100% - 14px),
+    calc(100% - 14px) 100%,
+    0 100%,
+    0 14px
+  );
+}
+
+.modal::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 4px;
+  background: repeating-linear-gradient(
+    45deg,
+    var(--color-accent) 0 12px,
+    #000000 12px 24px
+  );
+  pointer-events: none;
 }
 
 .modal h2 {
@@ -1183,8 +1220,12 @@ textarea:focus {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 12px;
-  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-accent);
 }
 
 .modal-actions {
@@ -1206,7 +1247,7 @@ textarea:focus {
   gap: var(--spacing-3);
   margin-bottom: var(--spacing-3);
   padding-bottom: var(--spacing-3);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px dashed var(--color-border-strong);
 }
 
 .modal-title-row {
@@ -1217,14 +1258,23 @@ textarea:focus {
 }
 
 .modal-close {
-  font-size: 16px;
-  padding: var(--spacing-1) var(--spacing-2);
+  font-size: 14px;
+  padding: 4px 10px;
   line-height: 1;
+  background: var(--color-magenta);
+  color: #000;
+  border-color: var(--color-magenta);
+}
+
+.modal-close:hover:not(:disabled) {
+  background: #ff3360;
+  border-color: #ff3360;
+  box-shadow: var(--shadow-glow-danger);
 }
 
 .icon-btn {
   padding: 4px 8px;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .today-item-actions {
