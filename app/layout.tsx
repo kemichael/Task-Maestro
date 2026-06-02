@@ -45,8 +45,8 @@ export default function RootLayout({
             <Image
               src="/logo.png"
               alt="Task Maestro"
-              width={140}
-              height={36}
+              width={228}
+              height={64}
               priority
               className="brand-logo"
             />

@@ -364,11 +364,21 @@ h3 {
 }
 
 .brand-logo {
-  height: 32px;
+  height: 64px;
   width: auto;
   object-fit: contain;
-  filter: drop-shadow(0 0 6px rgba(252, 238, 10, 0.35));
+  filter:
+    drop-shadow(0 0 14px rgba(252, 238, 10, 0.6))
+    drop-shadow(0 0 4px rgba(252, 238, 10, 0.9));
   animation: cyber-glitch 4s steps(1, end) infinite;
+  clip-path: polygon(
+    8px 0,
+    100% 0,
+    100% calc(100% - 8px),
+    calc(100% - 8px) 100%,
+    0 100%,
+    0 8px
+  );
 }
 
 .app-header .system-tag {
