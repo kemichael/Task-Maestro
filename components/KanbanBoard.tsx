@@ -13,7 +13,13 @@ import {
   KANBAN_COLUMN_LABEL,
   type KanbanColumn,
 } from "@/lib/types/kanban";
-import { MarkdownView } from "./MarkdownView";
+import { NotesHoverPopover } from "./NotesHoverPopover";
+import {
+  daysOverdueJst,
+  isDueTodayJst,
+  isOverdueJst,
+  todayJst,
+} from "@/lib/utils/date";
 
 interface Props {
   board: KanbanBoardData;
@@ -56,6 +62,9 @@ export function KanbanBoard({ board, kanbanMappings }: Props) {
   const [pending, setPending] = useState(false);
   const [dragOverCol, setDragOverCol] = useState<KanbanColumn | null>(null);
   const [confirmState, setConfirmState] = useState<BacklogConfirmState | null>(null);
+
+  // 期限切れ / 本日期限ハイライト用 JST 今日
+  const today = todayJst();
 
   const mappingByProject = useMemo(
     () => new Map(kanbanMappings.map((m) => [m.projectId, m])),
@@ -240,17 +249,28 @@ export function KanbanBoard({ board, kanbanMappings }: Props) {
             onDrop={(e) => handleDrop(col, e)}
           >
             <div className="kanban-column-header">
-              <span className="kanban-column-title">{KANBAN_COLUMN_LABEL[col]}</span>
+              <span className="kanban-column-title">
+                <span className="cyber-label" style={{ marginRight: 6 }}>{"STAGE →"}</span>
+                {KANBAN_COLUMN_LABEL[col]}
+              </span>
               <span className="kanban-column-count">{board[col].length}</span>
             </div>
             <div className="kanban-column-body">
               {board[col].length === 0 ? (
                 <div className="kanban-empty">(なし)</div>
               ) : (
-                board[col].map((card) => (
+                board[col].map((card) => {
+                  // done 列 (完了済) は期限切れ強調しない
+                  const due = cardDue(card);
+                  const completed = card.column === "done";
+                  const overdue = !completed && isOverdueJst(due, today);
+                  const dueToday =
+                    !completed && !overdue && isDueTodayJst(due, today);
+                  const dueClass = overdue ? "is-overdue" : dueToday ? "is-due-today" : "";
+                  return (
                   <article
                     key={cardKey(card)}
-                    className={`kanban-card kanban-card-${card.kind}`}
+                    className={`kanban-card kanban-card-${card.kind} ${dueClass}`.trim()}
                     draggable
                     onDragStart={(e) => handleDragStart(e, card)}
                     data-id={cardId(card)}
@@ -272,24 +292,23 @@ export function KanbanBoard({ board, kanbanMappings }: Props) {
                         </div>
                         <div className="kanban-card-title">{card.task.title}</div>
                         {card.task.notes && (
-                          <div className="kanban-card-notes-wrap">
-                            <div className="kanban-card-notes">{card.task.notes}</div>
-                            <div
-                              className="kanban-card-notes-popup"
-                              role="tooltip"
-                              aria-label="メモ全文"
-                            >
-                              <MarkdownView content={card.task.notes} />
-                            </div>
-                          </div>
+                          <NotesHoverPopover
+                            content={card.task.notes}
+                            classPrefix="kanban-card-notes"
+                          />
                         )}
                       </>
                     )}
-                    {cardDue(card) && (
-                      <div className="kanban-card-due">📅 {cardDue(card)}</div>
+                    {due && (
+                      <div className={`kanban-card-due ${dueClass}`.trim()}>
+                        {overdue ? "⚠️ " : dueToday ? "⏰ " : ""}📅 {due.slice(0, 10)}
+                        {overdue && ` (${daysOverdueJst(due, today)}日超過)`}
+                        {dueToday && " (本日)"}
+                      </div>
                     )}
                   </article>
-                ))
+                  );
+                })
               )}
             </div>
           </div>

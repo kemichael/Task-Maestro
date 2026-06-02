@@ -8,7 +8,13 @@ import {
   KANBAN_COLUMN_LABEL,
   type LocalTaskStatus,
 } from "@/lib/types/kanban";
-import { MarkdownView } from "./MarkdownView";
+import { NotesHoverPopover } from "./NotesHoverPopover";
+import {
+  daysOverdueJst,
+  isDueTodayJst,
+  isOverdueJst,
+  todayJst,
+} from "@/lib/utils/date";
 
 interface Props {
   tasks: LocalTask[];
@@ -33,6 +39,9 @@ export function LocalTaskList({ tasks }: Props) {
 
   const [editing, setEditing] = useState<EditState | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
+
+  // 期限切れ / 本日期限ハイライト用 JST 今日
+  const today = todayJst();
 
   const resetNewForm = () => {
     setNewTitle("");
@@ -148,7 +157,10 @@ export function LocalTaskList({ tasks }: Props) {
   return (
     <div className="local-tasks">
       <div className="local-tasks-header">
-        <span className="local-tasks-title">メモタスク</span>
+        <span className="local-tasks-title">
+          <span className="cyber-label" style={{ marginRight: 6 }}>{"MEMO OPS →"}</span>
+          メモタスク
+        </span>
         <button
           type="button"
           className="secondary-btn"
@@ -203,10 +215,15 @@ export function LocalTaskList({ tasks }: Props) {
           {tasks.map((task) => {
             const isEditing = editing?.id === task.id;
             const completed = task.status === "done";
+            // 完了済みは期限切れ強調しない
+            const overdue = !completed && isOverdueJst(task.dueDate, today);
+            const dueToday =
+              !completed && !overdue && isDueTodayJst(task.dueDate, today);
+            const dueClass = overdue ? "is-overdue" : dueToday ? "is-due-today" : "";
             return (
               <li
                 key={task.id}
-                className={`local-task-item${completed ? " completed" : ""}`}
+                className={`local-task-item${isEditing ? " is-editing" : ""}${completed ? " completed" : ""} ${dueClass}`.trim()}
                 data-local-task-id={task.id}
                 data-local-task-title={task.title}
               >
@@ -277,19 +294,17 @@ export function LocalTaskList({ tasks }: Props) {
                   <div className="local-task-body">
                     <div className="local-task-title">{task.title}</div>
                     {task.notes && (
-                      <div className="local-task-notes-wrap">
-                        <div className="local-task-notes">{task.notes}</div>
-                        <div
-                          className="local-task-notes-popup"
-                          role="tooltip"
-                          aria-label="メモ全文"
-                        >
-                          <MarkdownView content={task.notes} />
-                        </div>
-                      </div>
+                      <NotesHoverPopover
+                        content={task.notes}
+                        classPrefix="local-task-notes"
+                      />
                     )}
                     {task.dueDate && (
-                      <div className="local-task-due">📅 {task.dueDate}</div>
+                      <div className={`local-task-due ${dueClass}`.trim()}>
+                        {overdue ? "⚠️ " : dueToday ? "⏰ " : ""}📅 {task.dueDate.slice(0, 10)}
+                        {overdue && ` (${daysOverdueJst(task.dueDate, today)}日超過)`}
+                        {dueToday && " (本日)"}
+                      </div>
                     )}
                   </div>
                 )}

@@ -6,7 +6,13 @@ import type { BacklogIssue } from "@/lib/types/backlog";
 import { MarkdownEditor } from "./MarkdownEditor";
 import { MarkdownView } from "./MarkdownView";
 import { isCompletedStatus } from "@/lib/utils/issueStatus";
-import { normalizeDateForInput } from "@/lib/utils/date";
+import {
+  daysOverdueJst,
+  isDueTodayJst,
+  isOverdueJst,
+  normalizeDateForInput,
+  todayJst,
+} from "@/lib/utils/date";
 import type { BacklogProjectStatus } from "@/lib/types/backlog";
 
 interface ParentRef {
@@ -95,8 +101,9 @@ function compare(a: BacklogIssue, b: BacklogIssue, key: SortKey, order: SortOrde
 
 /**
  * 親子グルーピングソート:
- * - 親候補 (親なし or 親が一覧にない孤児) を issueKey でソート
- * - 各親の直後にその子 (issueKey でソート) を並べる
+ * - 親候補 (親なし or 親が一覧にない孤児) を期限昇順 (期限なし末尾) でソート
+ * - 各親の直後にその子を同じく期限昇順 (期限なし末尾) で並べる
+ * - 同 dueDate は issueKey でタイブレーク
  */
 function sortByParentChild(issues: BacklogIssue[], order: SortOrder): BacklogIssue[] {
   const sign = order === "asc" ? 1 : -1;
@@ -114,14 +121,26 @@ function sortByParentChild(issues: BacklogIssue[], order: SortOrder): BacklogIss
       parents.push(i);
     }
   }
-  parents.sort((a, b) => a.issueKey.localeCompare(b.issueKey) * sign);
+  // 同階層内のコンパレータ: 期限昇順 (期限なし末尾) → issueKey 昇順
+  // 期限なしを sign に関係なく末尾固定にするため、order 反転時も「期限なし vs 期限あり」の
+  // 大小関係は常に「期限なしが後ろ」になるよう、null チェックを分岐させる。
+  const cmpByDue = (a: BacklogIssue, b: BacklogIssue): number => {
+    if (a.dueDate && !b.dueDate) return -1;
+    if (!a.dueDate && b.dueDate) return 1;
+    if (a.dueDate && b.dueDate) {
+      const diff = a.dueDate.localeCompare(b.dueDate);
+      if (diff !== 0) return diff * sign;
+    }
+    return a.issueKey.localeCompare(b.issueKey) * sign;
+  };
+  parents.sort(cmpByDue);
 
   const result: BacklogIssue[] = [];
   for (const parent of parents) {
     result.push(parent);
     const kids = childrenMap.get(parent.id);
     if (kids) {
-      kids.sort((a, b) => a.issueKey.localeCompare(b.issueKey));
+      kids.sort(cmpByDue);
       result.push(...kids);
     }
   }
@@ -146,9 +165,12 @@ export function IssueListClient({ issues, parentMap = {} }: Props) {
   const [priorityFilter, setPriorityFilter] = useState<number | "">("");
   const [dueFilter, setDueFilter] = useState<"all" | "overdue" | "today" | "thisWeek" | "thisMonth" | "noDate">("all");
 
-  // ソート
-  const [sortKey, setSortKey] = useState<SortKey>("due");
+  // ソート: デフォルトは「親子順 (期限昇順、期限なし末尾)」
+  const [sortKey, setSortKey] = useState<SortKey>("parent");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+
+  // 期限切れ / 本日期限ハイライト用に JST 今日を 1 回算出 (レンダリング軽量)
+  const today = todayJst();
 
   const projectOptions = useMemo(() => {
     const map = new Map<number, string>();
@@ -454,10 +476,16 @@ export function IssueListClient({ issues, parentMap = {} }: Props) {
             const parent = issue.parentIssueId ? parentMap[issue.parentIssueId] : undefined;
             const hasParent = !!issue.parentIssueId;
             const isSelected = selectedId === issue.id;
+            // 完了済みは「もう終わってる」ので期限切れ強調しない
+            const completed = isCompletedStatus(issue.status);
+            const overdue = !completed && isOverdueJst(issue.dueDate, today);
+            const dueToday =
+              !completed && !overdue && isDueTodayJst(issue.dueDate, today);
+            const dueClass = overdue ? "is-overdue" : dueToday ? "is-due-today" : "";
             return (
               <div
                 key={issue.id}
-                className={`issue-card ${hasParent ? "issue-card-child" : ""} ${isSelected ? "is-selected" : ""}`}
+                className={`issue-card ${hasParent ? "issue-card-child" : ""} ${isSelected ? "is-selected" : ""} ${dueClass}`.trim()}
                 onClick={() => handleSelect(issue)}
                 data-issue-id={issue.id}
                 data-issue-key={issue.issueKey}
@@ -495,6 +523,7 @@ export function IssueListClient({ issues, parentMap = {} }: Props) {
                   )}
                   <div className="issue-card-title-row">
                     <span className="issue-key-chip">{issue.issueKey}</span>
+                    <span className="cyber-label">{"ISSUE →"}</span>
                     <span className="issue-card-title">{issue.summary}</span>
                   </div>
                   <div className="issue-card-meta">
@@ -503,7 +532,11 @@ export function IssueListClient({ issues, parentMap = {} }: Props) {
                       <span className={priorityBadgeClass(issue.priority)}>{issue.priority.name}</span>
                     )}
                     {issue.dueDate && (
-                      <span className="meta-due">📅 {issue.dueDate}</span>
+                      <span className={`meta-due ${dueClass}`.trim()}>
+                        {overdue ? "⚠️ " : dueToday ? "⏰ " : ""}📅 {issue.dueDate.slice(0, 10)}
+                        {overdue && ` (${daysOverdueJst(issue.dueDate, today)}日超過)`}
+                        {dueToday && " (本日)"}
+                      </span>
                     )}
                     {issue.assignee && (
                       <span className="meta-assignee">👤 {issue.assignee.name}</span>

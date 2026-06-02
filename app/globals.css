@@ -1,52 +1,79 @@
 /* =============================================================
-   Task Maestro — モダンデザインシステム
+   Task Maestro — Cyberpunk 2077 風デザインシステム
    ============================================================= */
 
 :root {
   color-scheme: dark;
 
-  /* ブランドアクセント (ダーク背景に映える彩度) */
-  --color-primary: #f472b6;
-  --color-primary-hover: #ec4899;
-  --color-primary-soft: rgba(244, 114, 182, 0.16);
-  --color-accent-blue: #60a5fa;
-  --color-accent-blue-soft: rgba(96, 165, 250, 0.16);
-  --color-accent-yellow: #fbbf24;
-  --color-accent-yellow-soft: rgba(251, 191, 36, 0.14);
+  /* ===== サーフェス・ボーダー ===== */
+  --color-bg: #000000;
+  --color-surface: #0a0e14;
+  --color-surface-alt: #14181f;
+  --color-surface-hover: #14181f;
+  --color-surface-muted: #0f1218;
+  --color-border: #2a2e36;
+  --color-border-strong: #3a3f4a;
+  --color-border-hot: #fcee0a;
 
-  /* レイヤード ダークサーフェス (slate ベース) */
-  --color-bg: #0b0f1a;
-  --color-surface: #131826;
-  --color-surface-hover: #1a2030;
-  --color-surface-muted: #161c2a;
-  --color-border: #232b3d;
-  --color-border-strong: #313a50;
+  /* ===== メインアクセント (蛍光イエロー) ===== */
+  --color-accent: #fcee0a;
+  --color-accent-hot: #fffa38;
+  --color-accent-deep: #c9bd00;
+  --color-accent-soft: rgba(252, 238, 10, 0.12);
 
-  --color-text: #e6e9f0;
-  --color-text-muted: #97a0b3;
-  --color-text-subtle: #6b7385;
-  --color-text-on-primary: #1a1023;
+  /* 互換: 旧 --color-primary 系のエイリアス */
+  --color-primary: var(--color-accent);
+  --color-primary-hover: var(--color-accent-hot);
+  --color-primary-soft: var(--color-accent-soft);
 
-  --color-success: #34d399;
-  --color-success-soft: rgba(52, 211, 153, 0.15);
-  --color-danger: #f87171;
-  --color-danger-soft: rgba(248, 113, 113, 0.15);
+  /* ===== サブアクセント ===== */
+  --color-cyan: #00f0ff;
+  --color-cyan-soft: rgba(0, 240, 255, 0.14);
+  --color-magenta: #ff003c;
+  --color-magenta-soft: rgba(255, 0, 60, 0.14);
+  --color-green-acid: #39ff14;
+  --color-green-soft: rgba(57, 255, 20, 0.14);
+  --color-orange-warn: #ff6b1a;
+  --color-orange-soft: rgba(255, 107, 26, 0.14);
 
-  --radius-sm: 7px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
+  /* 互換: 旧 accent エイリアス */
+  --color-accent-blue: var(--color-cyan);
+  --color-accent-blue-soft: var(--color-cyan-soft);
+  --color-accent-yellow: var(--color-accent);
+  --color-accent-yellow-soft: var(--color-accent-soft);
 
-  /* ダーク背景では影 + 微かな内側ハイライトで立体感を出す */
+  /* ===== テキスト ===== */
+  --color-text: #f5f5f5;
+  --color-text-muted: #8a9099;
+  --color-text-subtle: #5b616b;
+  --color-text-on-yellow: #0a0e14;
+  --color-text-on-primary: #0a0e14;
+
+  /* ===== セマンティック (互換用) ===== */
+  --color-success: var(--color-green-acid);
+  --color-success-soft: var(--color-green-soft);
+  --color-danger: var(--color-magenta);
+  --color-danger-soft: var(--color-magenta-soft);
+
+  /* ===== 角丸: clip-path 採用のため小さめに ===== */
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+
+  /* ===== シャドウ (グロー込み) ===== */
   --shadow-sm:
-    0 1px 2px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(255, 255, 255, 0.02) inset;
+    0 1px 2px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(252, 238, 10, 0.04) inset;
   --shadow-md:
-    0 4px 12px -2px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+    0 4px 14px -2px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(252, 238, 10, 0.06) inset;
   --shadow-lg:
-    0 16px 40px -8px rgba(0, 0, 0, 0.6),
-    0 4px 12px -4px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+    0 18px 44px -8px rgba(0, 0, 0, 0.8),
+    0 4px 14px -4px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(252, 238, 10, 0.08) inset;
+  --shadow-glow: 0 0 12px rgba(252, 238, 10, 0.45);
+  --shadow-glow-strong: 0 0 18px rgba(252, 238, 10, 0.7);
+  --shadow-glow-danger: 0 0 12px rgba(255, 0, 60, 0.55);
 
   --spacing-1: 4px;
   --spacing-2: 8px;
@@ -55,9 +82,12 @@
   --spacing-5: 20px;
   --spacing-6: 24px;
 
-  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Sans",
-    "Hiragino Kaku Gothic ProN", "Noto Sans CJK JP", sans-serif;
-  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  /* ===== フォント変数 ===== */
+  --font-sans: var(--font-sans-google), "Inter", system-ui, -apple-system, "Segoe UI",
+    Roboto, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans CJK JP", sans-serif;
+  --font-display: var(--font-display-google), "Rajdhani", var(--font-sans);
+  --font-mono: var(--font-mono-google), "JetBrains Mono", ui-monospace, "SFMono-Regular",
+    Menlo, Consolas, monospace;
 }
 
 * {
@@ -73,39 +103,224 @@ body {
   background: var(--color-bg);
   font-size: 14px;
   line-height: 1.5;
-  /* 微かなラディアル + 線形グラデで奥行きを出す (フラットすぎない) */
-  background-image:
-    radial-gradient(1200px 600px at 100% -10%, rgba(244, 114, 182, 0.06), transparent 60%),
-    radial-gradient(900px 500px at -10% 110%, rgba(96, 165, 250, 0.05), transparent 60%);
-  background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  position: relative;
+  min-height: 100vh;
+}
+
+/* CRT スキャンライン (グローバルオーバーレイ) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.045) 0 1px,
+    transparent 1px 3px
+  );
+  mix-blend-mode: overlay;
+}
+
+/* ノイズ背景 (グローバルオーバーレイ) */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.7 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
 }
 
 a {
-  color: inherit;
+  color: var(--color-accent);
   text-decoration: none;
-  transition: color 0.15s;
+  transition: color 0.15s, text-shadow 0.15s;
+}
+
+a:hover {
+  color: var(--color-accent-hot);
+  text-shadow: var(--shadow-glow);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text);
 }
 
 h1 {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
-  letter-spacing: -0.01em;
   margin: 0 0 var(--spacing-4);
+  position: relative;
+  display: inline-block;
+  padding-bottom: 6px;
+}
+
+h1::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 48px;
+  height: 4px;
+  background: var(--color-accent);
+  box-shadow: var(--shadow-glow);
 }
 
 h2 {
   font-size: 16px;
   font-weight: 600;
   margin: 0 0 var(--spacing-3);
-  color: var(--color-text);
 }
 
 h3 {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   margin: 0 0 var(--spacing-2);
+}
+
+/* =============================================================
+   Cyberpunk ユーティリティ
+   ============================================================= */
+
+/* クリップドコーナー */
+.cyber-clip {
+  clip-path: polygon(
+    12px 0,
+    100% 0,
+    100% calc(100% - 12px),
+    calc(100% - 12px) 100%,
+    0 100%,
+    0 12px
+  );
+  border-radius: 0 !important;
+}
+
+.cyber-clip-sm {
+  clip-path: polygon(
+    8px 0,
+    100% 0,
+    100% calc(100% - 8px),
+    calc(100% - 8px) 100%,
+    0 100%,
+    0 8px
+  );
+  border-radius: 0 !important;
+}
+
+/* ハザードストライプ帯 (黒/黄 45度) */
+.cyber-hazard {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--color-accent) 0 12px,
+    #000000 12px 24px
+  );
+  height: 8px;
+}
+
+.cyber-hazard-danger {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--color-magenta) 0 12px,
+    #000000 12px 24px
+  );
+}
+
+/* テクニカルラベル (XXX → 風) */
+.cyber-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.cyber-label-cyan {
+  color: var(--color-cyan);
+}
+
+/* ティックマーカー (端の目盛り) */
+.cyber-tick {
+  height: 8px;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0 7px,
+    var(--color-border) 7px 8px
+  );
+}
+
+/* ホットボーダー (hover / focus 用) */
+.cyber-hot {
+  border-color: var(--color-accent) !important;
+  box-shadow: var(--shadow-glow) !important;
+}
+
+/* グリッチ (ロゴ・タイトルで使用) */
+@keyframes cyber-glitch {
+  0%,
+  92%,
+  100% {
+    transform: translate(0);
+    text-shadow: none;
+    clip-path: none;
+  }
+  93% {
+    transform: translate(-2px, 0);
+    text-shadow: 1px 0 var(--color-cyan), -1px 0 var(--color-magenta);
+  }
+  95% {
+    transform: translate(2px, 0);
+    text-shadow: -1px 0 var(--color-cyan), 1px 0 var(--color-magenta);
+  }
+  97% {
+    transform: translate(-1px, 1px);
+    text-shadow: 1px 0 var(--color-cyan), -1px 0 var(--color-magenta);
+  }
+}
+
+.cyber-glitch {
+  animation: cyber-glitch 4s steps(1, end) infinite;
+}
+
+/* コーナーアンカー (大カードの四隅に L 字) */
+.cyber-corner {
+  position: relative;
+}
+
+.cyber-corner::before,
+.cyber-corner::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--color-accent);
+  pointer-events: none;
+}
+
+.cyber-corner::before {
+  top: 0;
+  left: 0;
+  border-right: none;
+  border-bottom: none;
+}
+
+.cyber-corner::after {
+  bottom: 0;
+  right: 0;
+  border-left: none;
+  border-top: none;
 }
 
 /* =============================================================
@@ -117,24 +332,62 @@ h3 {
   align-items: center;
   gap: var(--spacing-6);
   padding: var(--spacing-3) var(--spacing-6);
-  background: rgba(19, 24, 38, 0.7);
+  background: linear-gradient(180deg, #050709 0%, rgba(10, 14, 20, 0.92) 100%);
   backdrop-filter: saturate(180%) blur(14px);
   -webkit-backdrop-filter: saturate(180%) blur(14px);
-  border-bottom: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-accent);
+  border-bottom: 1px solid var(--color-accent);
   position: sticky;
   top: 0;
   z-index: 100;
+  box-shadow: 0 1px 0 rgba(252, 238, 10, 0.25);
+}
+
+.app-header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -9px;
+  height: 4px;
+  background: repeating-linear-gradient(
+    45deg,
+    var(--color-accent) 0 12px,
+    #000000 12px 24px
+  );
 }
 
 .app-header .brand {
   display: inline-flex;
   align-items: center;
+  position: relative;
 }
 
 .brand-logo {
-  height: 32px;
+  height: 64px;
   width: auto;
   object-fit: contain;
+  filter:
+    drop-shadow(0 0 14px rgba(252, 238, 10, 0.6))
+    drop-shadow(0 0 4px rgba(252, 238, 10, 0.9));
+  animation: cyber-glitch 4s steps(1, end) infinite;
+  clip-path: polygon(
+    8px 0,
+    100% 0,
+    100% calc(100% - 8px),
+    calc(100% - 8px) 100%,
+    0 100%,
+    0 8px
+  );
+}
+
+.app-header .system-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--color-green-acid);
+  text-transform: uppercase;
+  text-shadow: 0 0 8px rgba(57, 255, 20, 0.5);
 }
 
 .app-header .nav {
@@ -143,23 +396,40 @@ h3 {
 }
 
 .app-header .nav a {
+  position: relative;
   padding: var(--spacing-2) var(--spacing-3);
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-  font-weight: 500;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+  font-weight: 600;
   color: var(--color-text-muted);
-  transition: background 0.15s, color 0.15s;
+  transition: color 0.15s, background 0.15s;
 }
 
 .app-header .nav a:hover {
-  background: var(--color-surface-muted);
-  color: var(--color-text);
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  text-shadow: var(--shadow-glow);
+}
+
+.app-header .nav a.is-active::after {
+  content: "";
+  position: absolute;
+  left: var(--spacing-3);
+  right: var(--spacing-3);
+  bottom: 2px;
+  height: 2px;
+  background: var(--color-accent);
+  box-shadow: var(--shadow-glow);
 }
 
 .app-main {
   padding: var(--spacing-6);
   max-width: 1500px;
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
 /* =============================================================
@@ -167,19 +437,30 @@ h3 {
    ============================================================= */
 
 button {
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 500;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   cursor: pointer;
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   border: 1px solid transparent;
-  padding: var(--spacing-2) var(--spacing-4);
-  transition: background 0.15s, border-color 0.15s, transform 0.05s, box-shadow 0.15s;
+  padding: 8px 16px;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.05s,
+    box-shadow 0.15s, text-shadow 0.15s;
+  clip-path: polygon(
+    8px 0,
+    100% 0,
+    100% calc(100% - 8px),
+    calc(100% - 8px) 100%,
+    0 100%,
+    0 8px
+  );
 }
 
 button:disabled {
   cursor: not-allowed;
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
 button:not(:disabled):active {
@@ -187,37 +468,41 @@ button:not(:disabled):active {
 }
 
 .primary-btn {
-  background: var(--color-primary);
-  color: var(--color-text-on-primary);
-  border-color: var(--color-primary);
-  box-shadow: var(--shadow-sm);
+  background: var(--color-accent);
+  color: var(--color-text-on-yellow);
+  border-color: var(--color-accent);
 }
 
 .primary-btn:hover:not(:disabled) {
-  background: var(--color-primary-hover);
-  border-color: var(--color-primary-hover);
+  background: var(--color-accent-hot);
+  border-color: var(--color-accent-hot);
+  box-shadow: var(--shadow-glow-strong);
 }
 
 .secondary-btn {
-  background: var(--color-surface);
-  color: var(--color-text);
-  border-color: var(--color-border-strong);
+  background: transparent;
+  color: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
 .secondary-btn:hover:not(:disabled) {
-  background: var(--color-surface-hover);
-  border-color: var(--color-text-subtle);
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent-hot);
+  color: var(--color-accent-hot);
+  text-shadow: var(--shadow-glow);
 }
 
 .ghost-btn {
   background: transparent;
   color: var(--color-text-muted);
   border-color: transparent;
+  clip-path: none;
 }
 
 .ghost-btn:hover:not(:disabled) {
-  background: var(--color-surface-muted);
-  color: var(--color-text);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  text-shadow: var(--shadow-glow);
 }
 
 /* =============================================================
@@ -227,8 +512,15 @@ button:not(:disabled):active {
 .card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
+  clip-path: polygon(
+    12px 0,
+    100% 0,
+    100% calc(100% - 12px),
+    calc(100% - 12px) 100%,
+    0 100%,
+    0 12px
+  );
 }
 
 /* =============================================================
@@ -237,91 +529,132 @@ button:not(:disabled):active {
 
 .error-banner {
   padding: var(--spacing-3) var(--spacing-4);
-  background: var(--color-danger-soft);
-  border: 1px solid rgba(248, 113, 113, 0.4);
-  border-radius: var(--radius-sm);
-  color: #fda4a4;
+  background: var(--color-magenta-soft);
+  border-left: 4px solid var(--color-magenta);
+  border-top: 1px solid rgba(255, 0, 60, 0.4);
+  border-right: 1px solid rgba(255, 0, 60, 0.4);
+  border-bottom: 1px solid rgba(255, 0, 60, 0.4);
+  color: #ffb0bc;
   margin-bottom: var(--spacing-3);
   font-size: 13px;
+  font-family: var(--font-mono);
 }
 
 .info-banner {
   padding: var(--spacing-3) var(--spacing-4);
-  background: var(--color-accent-blue-soft);
-  border: 1px solid rgba(96, 165, 250, 0.4);
-  border-radius: var(--radius-sm);
-  color: #93c5fd;
+  background: var(--color-cyan-soft);
+  border-left: 4px solid var(--color-cyan);
+  border-top: 1px solid rgba(0, 240, 255, 0.4);
+  border-right: 1px solid rgba(0, 240, 255, 0.4);
+  border-bottom: 1px solid rgba(0, 240, 255, 0.4);
+  color: #aef0ff;
   margin-bottom: var(--spacing-3);
   font-size: 13px;
+  font-family: var(--font-mono);
 }
 
 .hint {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--color-text-muted);
   margin-top: var(--spacing-2);
+  font-family: var(--font-mono);
+  letter-spacing: 0.05em;
 }
 
 /* =============================================================
-   バッジ
+   バッジ (識別色を Cyberpunk パレットに統一)
    ============================================================= */
 
 .badge {
   display: inline-flex;
   align-items: center;
   padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 500;
+  border-radius: 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
   line-height: 1.4;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   border: 1px solid transparent;
 }
 
 .badge-todo {
-  background: rgba(129, 140, 248, 0.15);
-  color: #a5b4fc;
-  border-color: rgba(129, 140, 248, 0.3);
+  background: var(--color-cyan-soft);
+  color: var(--color-cyan);
+  border-color: rgba(0, 240, 255, 0.5);
 }
 
 .badge-progress {
-  background: rgba(251, 191, 36, 0.15);
-  color: #fcd34d;
-  border-color: rgba(251, 191, 36, 0.3);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
 .badge-resolved {
-  background: rgba(52, 211, 153, 0.15);
-  color: #6ee7b7;
-  border-color: rgba(52, 211, 153, 0.3);
+  background: var(--color-green-soft);
+  color: var(--color-green-acid);
+  border-color: rgba(57, 255, 20, 0.5);
 }
 
 .badge-done {
-  background: rgba(148, 163, 184, 0.12);
-  color: var(--color-text-subtle);
+  background: var(--color-surface-alt);
+  color: var(--color-text-muted);
   border-color: var(--color-border-strong);
 }
 
 .badge-high {
-  background: rgba(248, 113, 113, 0.15);
-  color: #fca5a5;
-  border-color: rgba(248, 113, 113, 0.35);
+  background: var(--color-magenta-soft);
+  color: var(--color-magenta);
+  border-color: var(--color-magenta);
 }
 
 .badge-normal {
-  background: var(--color-surface-muted);
+  background: var(--color-surface-alt);
   color: var(--color-text-muted);
   border-color: var(--color-border);
 }
 
 .badge-low {
-  background: rgba(52, 211, 153, 0.1);
-  color: #86efac;
-  border-color: rgba(52, 211, 153, 0.25);
+  background: var(--color-green-soft);
+  color: var(--color-green-acid);
+  border-color: rgba(57, 255, 20, 0.3);
 }
 
 .badge-muted {
-  background: var(--color-surface-muted);
+  background: var(--color-surface-alt);
   color: var(--color-text-muted);
   border-color: var(--color-border);
+}
+
+/* =============================================================
+   キーチップ (PROJ-123 表示)
+   ============================================================= */
+
+.issue-key-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  background: var(--color-accent);
+  color: var(--color-text-on-yellow);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  flex-shrink: 0;
+  clip-path: polygon(
+    4px 0,
+    100% 0,
+    100% calc(100% - 4px),
+    calc(100% - 4px) 100%,
+    0 100%,
+    0 4px
+  );
+}
+
+.issue-key-chip.large {
+  font-size: 12px;
+  padding: 4px 10px;
 }
 
 /* =============================================================
@@ -353,10 +686,34 @@ button:not(:disabled):active {
 .dashboard-left,
 .dashboard-right {
   background: var(--color-surface);
-  border-radius: var(--radius-md);
   padding: var(--spacing-4);
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-sm);
+  position: relative;
+  clip-path: polygon(
+    12px 0,
+    100% 0,
+    100% calc(100% - 12px),
+    calc(100% - 12px) 100%,
+    0 100%,
+    0 12px
+  );
+}
+
+.dashboard-left::before,
+.dashboard-right::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 3px;
+  background: repeating-linear-gradient(
+    45deg,
+    var(--color-accent) 0 10px,
+    #000000 10px 20px
+  );
+  pointer-events: none;
 }
 
 /* =============================================================
@@ -380,9 +737,10 @@ button:not(:disabled):active {
   padding: var(--spacing-6);
   text-align: center;
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-family: var(--font-mono);
+  font-size: 12px;
   background: var(--color-surface-muted);
-  border-radius: var(--radius-sm);
+  border: 1px dashed var(--color-border-strong);
 }
 
 .today-list ul {
@@ -401,14 +759,21 @@ button:not(:disabled):active {
   padding: var(--spacing-3);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
   cursor: grab;
   transition: border-color 0.15s, box-shadow 0.15s;
+  clip-path: polygon(
+    8px 0,
+    100% 0,
+    100% calc(100% - 8px),
+    calc(100% - 8px) 100%,
+    0 100%,
+    0 8px
+  );
 }
 
 .today-item:hover {
-  border-color: var(--color-primary);
-  box-shadow: var(--shadow-sm);
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-glow);
 }
 
 .today-item:active {
@@ -417,17 +782,16 @@ button:not(:disabled):active {
 
 .today-item .check-btn {
   padding: 4px 8px;
-  font-size: 12px;
-  background: var(--color-primary-soft);
-  border: 1px solid var(--color-primary);
-  color: var(--color-primary-hover);
+  font-size: 10px;
+  background: var(--color-accent-soft);
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent);
   flex-shrink: 0;
-  border-radius: var(--radius-sm);
 }
 
 .today-item .check-btn:hover:not(:disabled) {
-  background: var(--color-primary);
-  color: var(--color-text-on-primary);
+  background: var(--color-accent);
+  color: var(--color-text-on-yellow);
 }
 
 .today-body {
@@ -453,7 +817,8 @@ button:not(:disabled):active {
 }
 
 .today-flag {
-  font-size: 11px;
+  font-family: var(--font-mono);
+  font-size: 10px;
   color: var(--color-text-muted);
   display: flex;
   align-items: center;
@@ -462,7 +827,7 @@ button:not(:disabled):active {
 }
 
 /* =============================================================
-   チケット一覧 (カードレイアウト)
+   チケット一覧
    ============================================================= */
 
 .issue-list-layout {
@@ -483,6 +848,16 @@ button:not(:disabled):active {
   flex-wrap: wrap;
   padding: var(--spacing-3) var(--spacing-4);
   margin-bottom: var(--spacing-2);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  clip-path: polygon(
+    10px 0,
+    100% 0,
+    100% calc(100% - 10px),
+    calc(100% - 10px) 100%,
+    0 100%,
+    0 10px
+  );
 }
 
 .filter-keyword {
@@ -491,15 +866,17 @@ button:not(:disabled):active {
 }
 
 .filter-summary {
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
   color: var(--color-text-muted);
   margin-bottom: var(--spacing-2);
   padding-left: var(--spacing-2);
 }
 
 .filter-count {
-  color: var(--color-primary);
-  font-weight: 600;
+  color: var(--color-accent);
+  font-weight: 700;
 }
 
 .sort-bar {
@@ -511,38 +888,50 @@ button:not(:disabled):active {
   padding: var(--spacing-2) var(--spacing-3);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
+  clip-path: polygon(
+    10px 0,
+    100% 0,
+    100% calc(100% - 10px),
+    calc(100% - 10px) 100%,
+    0 100%,
+    0 10px
+  );
 }
 
 .sort-label {
-  font-size: 12px;
-  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-accent);
   margin-right: var(--spacing-2);
 }
 
 .sort-btn {
   padding: 4px 10px;
-  font-size: 12px;
-  background: var(--color-surface);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  background: transparent;
   border: 1px solid var(--color-border);
   color: var(--color-text-muted);
-  border-radius: 999px;
+  clip-path: none;
+  border-radius: 0;
 }
 
 .sort-btn:hover {
-  background: var(--color-surface-hover);
+  background: var(--color-surface-alt);
   color: var(--color-text);
+  border-color: var(--color-border-strong);
 }
 
 .sort-btn.is-active {
-  background: var(--color-primary-soft);
-  border-color: var(--color-primary);
-  color: var(--color-primary-hover);
-  font-weight: 600;
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-text-on-yellow);
+  font-weight: 700;
 }
-
-/* チケットカード */
 
 .issue-cards {
   display: flex;
@@ -554,6 +943,10 @@ button:not(:disabled):active {
   padding: var(--spacing-6);
   text-align: center;
   color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  border: 1px dashed var(--color-border-strong);
+  background: var(--color-surface-muted);
 }
 
 .issue-card {
@@ -563,25 +956,32 @@ button:not(:disabled):active {
   padding: var(--spacing-3) var(--spacing-4);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
   cursor: pointer;
   transition: border-color 0.15s, box-shadow 0.15s, transform 0.05s;
   position: relative;
+  clip-path: polygon(
+    10px 0,
+    100% 0,
+    100% calc(100% - 10px),
+    calc(100% - 10px) 100%,
+    0 100%,
+    0 10px
+  );
 }
 
 .issue-card:hover {
-  border-color: var(--color-primary);
-  box-shadow: var(--shadow-md);
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-glow);
 }
 
 .issue-card.is-selected {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-soft);
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-glow-strong);
 }
 
 .issue-card-child {
   margin-left: var(--spacing-6);
-  border-left: 3px solid var(--color-accent-blue);
+  border-left: 3px solid var(--color-cyan);
 }
 
 .issue-card-child::before {
@@ -591,7 +991,13 @@ button:not(:disabled):active {
   top: 0;
   bottom: 0;
   width: 1px;
-  background: linear-gradient(to bottom, transparent, var(--color-border) 20%, var(--color-border) 80%, transparent);
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--color-border) 20%,
+    var(--color-border) 80%,
+    transparent
+  );
 }
 
 .issue-card-body {
@@ -621,7 +1027,9 @@ button:not(:disabled):active {
   align-items: center;
   gap: var(--spacing-2);
   flex-wrap: wrap;
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
   color: var(--color-text-muted);
 }
 
@@ -643,34 +1051,14 @@ button:not(:disabled):active {
   display: inline-flex;
   align-items: center;
   padding: 2px 8px;
-  background: var(--color-accent-yellow-soft);
-  border: 1px solid rgba(251, 191, 36, 0.35);
-  color: #fcd34d;
-  border-radius: var(--radius-sm);
-  font-size: 11px;
-}
-
-/* キーチップ */
-
-.issue-key-chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  background: var(--color-accent-blue-soft);
-  color: #93c5fd;
-  border-radius: var(--radius-sm);
-  font-size: 11px;
+  background: var(--color-accent-soft);
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent);
   font-family: var(--font-mono);
-  font-weight: 600;
-  flex-shrink: 0;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
-
-.issue-key-chip.large {
-  font-size: 13px;
-  padding: 4px 10px;
-}
-
-/* 星マーク (今日やる) */
 
 .star-btn {
   background: transparent;
@@ -680,33 +1068,35 @@ button:not(:disabled):active {
   line-height: 1;
   padding: 4px;
   cursor: pointer;
-  transition: color 0.15s, transform 0.1s;
+  transition: color 0.15s, transform 0.1s, text-shadow 0.15s;
   flex-shrink: 0;
+  clip-path: none;
 }
 
 .star-btn:hover:not(:disabled) {
-  color: var(--color-accent-yellow);
+  color: var(--color-accent);
   transform: scale(1.15);
+  text-shadow: var(--shadow-glow);
 }
 
 .star-btn.is-on {
-  color: var(--color-accent-yellow);
+  color: var(--color-accent);
+  text-shadow: var(--shadow-glow);
 }
 
 .star-btn.is-on:hover:not(:disabled) {
-  color: #fcd34d;
+  color: var(--color-accent-hot);
 }
-
-/* 親課題チップ */
 
 .parent-chip {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   padding: 2px 8px;
-  background: var(--color-surface-muted);
-  border-radius: var(--radius-sm);
-  font-size: 11px;
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  font-family: var(--font-mono);
+  font-size: 10px;
   color: var(--color-text-muted);
   width: fit-content;
   max-width: 100%;
@@ -719,18 +1109,18 @@ button:not(:disabled):active {
 .parent-chip-detail {
   margin-bottom: var(--spacing-3);
   padding: var(--spacing-2) var(--spacing-3);
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .parent-arrow {
-  color: var(--color-accent-blue);
+  color: var(--color-cyan);
   font-weight: bold;
 }
 
 .parent-key {
   font-family: var(--font-mono);
-  font-weight: 600;
-  color: #93c5fd;
+  font-weight: 700;
+  color: var(--color-cyan);
 }
 
 .parent-name {
@@ -745,8 +1135,6 @@ button:not(:disabled):active {
   font-family: var(--font-mono);
 }
 
-/* 詳細パネル */
-
 .issue-detail {
   width: 420px;
   flex-shrink: 0;
@@ -755,6 +1143,16 @@ button:not(:disabled):active {
   top: 80px;
   max-height: calc(100vh - 100px);
   overflow-y: auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  clip-path: polygon(
+    12px 0,
+    100% 0,
+    100% calc(100% - 12px),
+    calc(100% - 12px) 100%,
+    0 100%,
+    0 12px
+  );
 }
 
 .issue-detail-header {
@@ -780,7 +1178,7 @@ button:not(:disabled):active {
   margin-bottom: var(--spacing-3);
   padding: var(--spacing-2);
   background: var(--color-surface-muted);
-  border-radius: var(--radius-sm);
+  border: 1px dashed var(--color-border-strong);
 }
 
 /* =============================================================
@@ -795,9 +1193,12 @@ button:not(:disabled):active {
 }
 
 .form-field-label {
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: 10px;
   font-weight: 500;
-  color: var(--color-text-muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-accent);
 }
 
 .form-row {
@@ -817,9 +1218,9 @@ select,
 textarea {
   padding: 8px 12px;
   border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   font-size: 13px;
-  font-family: inherit;
+  font-family: var(--font-mono);
   background: var(--color-surface);
   color: var(--color-text);
   transition: border-color 0.15s, box-shadow 0.15s;
@@ -832,8 +1233,8 @@ input[type="email"]:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-soft);
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-glow);
 }
 
 /* =============================================================
@@ -843,7 +1244,7 @@ textarea:focus {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(5, 8, 14, 0.65);
+  background: rgba(0, 0, 0, 0.78);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   display: flex;
@@ -852,15 +1253,52 @@ textarea:focus {
   z-index: 1000;
 }
 
+.modal-backdrop::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.06) 0 1px,
+    transparent 1px 3px
+  );
+  mix-blend-mode: overlay;
+}
+
 .modal {
+  position: relative;
   background: var(--color-surface);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-strong);
   padding: var(--spacing-6);
   width: 560px;
   max-width: 90vw;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: var(--shadow-lg);
+  clip-path: polygon(
+    14px 0,
+    100% 0,
+    100% calc(100% - 14px),
+    calc(100% - 14px) 100%,
+    0 100%,
+    0 14px
+  );
+}
+
+.modal::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 4px;
+  background: repeating-linear-gradient(
+    45deg,
+    var(--color-accent) 0 12px,
+    #000000 12px 24px
+  );
+  pointer-events: none;
 }
 
 .modal h2 {
@@ -877,8 +1315,12 @@ textarea:focus {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 12px;
-  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-accent);
 }
 
 .modal-actions {
@@ -900,7 +1342,7 @@ textarea:focus {
   gap: var(--spacing-3);
   margin-bottom: var(--spacing-3);
   padding-bottom: var(--spacing-3);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px dashed var(--color-border-strong);
 }
 
 .modal-title-row {
@@ -911,14 +1353,23 @@ textarea:focus {
 }
 
 .modal-close {
-  font-size: 16px;
-  padding: var(--spacing-1) var(--spacing-2);
+  font-size: 14px;
+  padding: 4px 10px;
   line-height: 1;
+  background: var(--color-magenta);
+  color: #000;
+  border-color: var(--color-magenta);
+}
+
+.modal-close:hover:not(:disabled) {
+  background: #ff3360;
+  border-color: #ff3360;
+  box-shadow: var(--shadow-glow-danger);
 }
 
 .icon-btn {
   padding: 4px 8px;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .today-item-actions {
@@ -942,7 +1393,6 @@ textarea:focus {
   white-space: pre-wrap;
 }
 
-
 .markdown-body {
   font-size: 13px;
   line-height: 1.65;
@@ -954,19 +1404,28 @@ textarea:focus {
 .markdown-body h3 {
   margin-top: 1em;
   margin-bottom: 0.5em;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-accent);
 }
 
 .markdown-body pre {
-  background: var(--color-surface-muted);
+  background: #000;
   padding: var(--spacing-3);
-  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--color-accent);
+  border-top: 1px solid var(--color-border);
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
   overflow-x: auto;
-  border: 1px solid var(--color-border);
+  font-family: var(--font-mono);
+  color: var(--color-green-acid);
 }
 
 .markdown-body code {
   font-family: var(--font-mono);
   font-size: 12px;
+  color: var(--color-accent);
 }
 
 .markdown-body table {
@@ -980,34 +1439,53 @@ textarea:focus {
   padding: 4px 8px;
 }
 
+.markdown-body table th {
+  color: var(--color-accent);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+
 .markdown-body blockquote {
-  border-left: 3px solid var(--color-border-strong);
+  border-left: 3px solid var(--color-accent);
   padding-left: var(--spacing-3);
   color: var(--color-text-muted);
   margin-left: 0;
+  background: var(--color-accent-soft);
+  padding-top: var(--spacing-2);
+  padding-bottom: var(--spacing-2);
 }
 
 .markdown-body a {
-  color: var(--color-accent-blue);
+  color: var(--color-cyan);
+  text-decoration: underline;
+}
+
+.markdown-body a:hover {
+  color: var(--color-cyan);
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
 }
 
 .markdown-empty {
   color: var(--color-text-subtle);
-  font-size: 13px;
+  font-family: var(--font-mono);
+  font-size: 11px;
 }
 
 .markdown-preview-toggle {
   margin: var(--spacing-1) 0 var(--spacing-3);
   padding: var(--spacing-2) var(--spacing-3);
   border: 1px dashed var(--color-border-strong);
-  border-radius: var(--radius-sm);
   background: var(--color-surface-muted);
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
 }
 
 .markdown-preview-toggle summary {
   cursor: pointer;
-  color: var(--color-text-muted);
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .markdown-preview-toggle[open] summary {
@@ -1020,16 +1498,19 @@ textarea:focus {
 
 .env-table {
   border-collapse: collapse;
-  font-size: 13px;
+  font-family: var(--font-mono);
+  font-size: 12px;
   margin-bottom: var(--spacing-4);
   width: 100%;
 }
 
 .env-table th {
   text-align: left;
-  font-weight: 500;
-  color: var(--color-text-muted);
-  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-accent);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 
 .env-table th,
@@ -1039,12 +1520,14 @@ textarea:focus {
 }
 
 .status-ok {
-  color: var(--color-success);
-  font-weight: 500;
+  color: var(--color-green-acid);
+  font-weight: 700;
+  text-shadow: 0 0 6px rgba(57, 255, 20, 0.5);
 }
 
 .status-missing {
-  color: var(--color-danger);
+  color: var(--color-magenta);
+  font-weight: 700;
 }
 
 .settings-form section {
@@ -1052,8 +1535,31 @@ textarea:focus {
   padding: var(--spacing-5);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  position: relative;
   box-shadow: var(--shadow-sm);
+  clip-path: polygon(
+    12px 0,
+    100% 0,
+    100% calc(100% - 12px),
+    calc(100% - 12px) 100%,
+    0 100%,
+    0 12px
+  );
+}
+
+.settings-form section::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 3px;
+  background: repeating-linear-gradient(
+    45deg,
+    var(--color-accent) 0 10px,
+    #000000 10px 20px
+  );
+  pointer-events: none;
 }
 
 .settings-form .row {
@@ -1080,13 +1586,15 @@ textarea:focus {
 }
 
 .sync-message {
-  font-size: 12px;
-  color: var(--color-success);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-green-acid);
 }
 
 .sync-error {
-  font-size: 12px;
-  color: var(--color-danger);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-magenta);
 }
 
 /* =============================================================
@@ -1100,9 +1608,17 @@ textarea:focus {
 .manual-page .markdown-body {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
   padding: var(--spacing-6);
   box-shadow: var(--shadow-sm);
+  position: relative;
+  clip-path: polygon(
+    14px 0,
+    100% 0,
+    100% calc(100% - 14px),
+    calc(100% - 14px) 100%,
+    0 100%,
+    0 14px
+  );
 }
 
 /* =============================================================
@@ -1110,19 +1626,68 @@ textarea:focus {
    ============================================================= */
 
 .calendar-pane {
-  font-size: 13px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.calendar-pane .fc-toolbar-title {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-accent);
+}
+
+.calendar-pane .fc-button {
+  background: transparent;
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.calendar-pane .fc-button:hover {
+  background: var(--color-accent-soft);
+  color: var(--color-accent-hot);
+}
+
+.calendar-pane .fc-button-active {
+  background: var(--color-accent) !important;
+  color: var(--color-text-on-yellow) !important;
 }
 
 /* =============================================================
-   メモタスク (Backlog 非依存のローカルタスク)
+   メモタスク
    ============================================================= */
 
 .local-tasks {
   margin-bottom: var(--spacing-4);
   padding: var(--spacing-3);
-  background: var(--color-accent-yellow-soft);
-  border: 1px solid var(--color-accent-yellow);
-  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-accent);
+  position: relative;
+  clip-path: polygon(
+    12px 0,
+    100% 0,
+    100% calc(100% - 12px),
+    calc(100% - 12px) 100%,
+    0 100%,
+    0 12px
+  );
+}
+
+.local-tasks::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 3px;
+  background: repeating-linear-gradient(
+    45deg,
+    var(--color-accent) 0 10px,
+    #000000 10px 20px
+  );
 }
 
 .local-tasks-header {
@@ -1133,9 +1698,12 @@ textarea:focus {
 }
 
 .local-tasks-title {
+  font-family: var(--font-display);
   font-size: 13px;
-  font-weight: 600;
-  color: var(--color-text);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
 }
 
 .local-task-form {
@@ -1144,9 +1712,8 @@ textarea:focus {
   gap: var(--spacing-2);
   padding: var(--spacing-3);
   margin-bottom: var(--spacing-2);
-  background: var(--color-surface);
+  background: var(--color-surface-muted);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
 }
 
 .local-task-form input[type="text"],
@@ -1155,10 +1722,9 @@ textarea:focus {
 .local-task-edit textarea {
   width: 100%;
   padding: 6px 8px;
-  font-family: var(--font-sans);
+  font-family: var(--font-mono);
   font-size: 13px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
   background: var(--color-surface);
 }
 
@@ -1180,8 +1746,11 @@ textarea:focus {
   display: flex;
   align-items: center;
   gap: var(--spacing-1);
-  font-size: 12px;
-  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-accent);
 }
 
 .local-task-form-actions {
@@ -1205,14 +1774,21 @@ textarea:focus {
   padding: var(--spacing-2) var(--spacing-3);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
   cursor: grab;
   transition: border-color 0.15s, box-shadow 0.15s;
+  clip-path: polygon(
+    8px 0,
+    100% 0,
+    100% calc(100% - 8px),
+    calc(100% - 8px) 100%,
+    0 100%,
+    0 8px
+  );
 }
 
 .local-task-item:hover {
-  border-color: var(--color-accent-yellow);
-  box-shadow: var(--shadow-sm);
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-glow);
 }
 
 .local-task-item:active {
@@ -1220,7 +1796,7 @@ textarea:focus {
 }
 
 .local-task-item.completed {
-  opacity: 0.55;
+  opacity: 0.5;
 }
 
 .local-task-item.completed .local-task-title {
@@ -1230,6 +1806,7 @@ textarea:focus {
 .local-task-check {
   margin-top: 3px;
   flex-shrink: 0;
+  accent-color: var(--color-accent);
 }
 
 .local-task-body {
@@ -1242,7 +1819,7 @@ textarea:focus {
 
 .local-task-title {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--color-text);
   word-break: break-word;
 }
@@ -1275,9 +1852,8 @@ textarea:focus {
   max-height: 420px;
   overflow: auto;
   padding: var(--spacing-3) var(--spacing-4);
-  background: var(--color-surface-hover);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-accent);
   box-shadow: var(--shadow-lg);
   color: var(--color-text);
 }
@@ -1300,8 +1876,10 @@ textarea:focus {
 }
 
 .local-task-due {
-  font-size: 11px;
+  font-family: var(--font-mono);
+  font-size: 10px;
   color: var(--color-text-muted);
+  letter-spacing: 0.05em;
 }
 
 .local-task-edit {
@@ -1337,31 +1915,47 @@ textarea:focus {
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-1);
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
   color: var(--color-text-muted);
 }
 
 .kanban-done-scope select {
   padding: 4px 6px;
-  font-size: 12px;
+  font-size: 11px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
   background: var(--color-surface);
+  font-family: var(--font-mono);
 }
 
 .kanban-mode-switch {
   display: inline-flex;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--color-accent);
   overflow: hidden;
   background: var(--color-surface);
+  clip-path: polygon(
+    8px 0,
+    100% 0,
+    100% calc(100% - 8px),
+    calc(100% - 8px) 100%,
+    0 100%,
+    0 8px
+  );
 }
 
 .kanban-mode-switch .mode-tab {
   padding: var(--spacing-2) var(--spacing-4);
-  font-size: 13px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   color: var(--color-text-muted);
-  border-right: 1px solid var(--color-border);
+  border-right: 1px solid var(--color-accent);
+  background: transparent;
+  border-radius: 0;
+  clip-path: none;
   transition: background 0.15s, color 0.15s;
 }
 
@@ -1370,12 +1964,13 @@ textarea:focus {
 }
 
 .kanban-mode-switch .mode-tab:hover {
-  background: var(--color-surface-hover);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
 }
 
 .kanban-mode-switch .mode-tab.active {
-  background: var(--color-primary);
-  color: var(--color-text-on-primary);
+  background: var(--color-accent);
+  color: var(--color-text-on-yellow);
 }
 
 .kanban-wrapper {
@@ -1385,7 +1980,8 @@ textarea:focus {
 }
 
 .kanban-pending {
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
   color: var(--color-text-muted);
 }
 
@@ -1399,38 +1995,67 @@ textarea:focus {
 .kanban-column {
   background: var(--color-surface-muted);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
   padding: var(--spacing-2);
   min-height: 240px;
-  transition: background 0.15s, border-color 0.15s;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  position: relative;
+  clip-path: polygon(
+    10px 0,
+    100% 0,
+    100% calc(100% - 10px),
+    calc(100% - 10px) 100%,
+    0 100%,
+    0 10px
+  );
+}
+
+.kanban-column::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 4px;
+  background: repeating-linear-gradient(
+    45deg,
+    var(--color-accent) 0 10px,
+    #000000 10px 20px
+  );
+  pointer-events: none;
 }
 
 .kanban-column.drag-over {
-  background: var(--color-primary-soft);
-  border-color: var(--color-primary);
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-glow-strong);
 }
 
 .kanban-column-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-1) var(--spacing-2);
+  padding: var(--spacing-2);
   margin-bottom: var(--spacing-2);
+  margin-top: 4px;
 }
 
 .kanban-column-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-text);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-accent);
 }
 
 .kanban-column-count {
-  font-size: 11px;
-  color: var(--color-text-muted);
-  background: var(--color-surface);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-text-on-yellow);
+  background: var(--color-accent);
   padding: 1px 8px;
-  border-radius: 999px;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-accent);
+  font-weight: 700;
 }
 
 .kanban-column-body {
@@ -1441,26 +2066,35 @@ textarea:focus {
 
 .kanban-empty {
   text-align: center;
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
   color: var(--color-text-subtle);
   padding: var(--spacing-4);
+  border: 1px dashed var(--color-border-strong);
 }
 
 .kanban-card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
   padding: var(--spacing-2) var(--spacing-3);
   cursor: grab;
   display: flex;
   flex-direction: column;
   gap: 4px;
   transition: border-color 0.15s, box-shadow 0.15s, transform 0.05s;
+  clip-path: polygon(
+    7px 0,
+    100% 0,
+    100% calc(100% - 7px),
+    calc(100% - 7px) 100%,
+    0 100%,
+    0 7px
+  );
 }
 
 .kanban-card:hover {
-  border-color: var(--color-primary);
-  box-shadow: var(--shadow-sm);
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-glow);
 }
 
 .kanban-card:active {
@@ -1468,11 +2102,11 @@ textarea:focus {
 }
 
 .kanban-card-local {
-  border-left: 3px solid var(--color-accent-yellow);
+  border-left: 3px solid var(--color-accent);
 }
 
 .kanban-card-backlog {
-  border-left: 3px solid var(--color-accent-blue);
+  border-left: 3px solid var(--color-cyan);
 }
 
 .kanban-card-meta {
@@ -1480,20 +2114,25 @@ textarea:focus {
   align-items: center;
   gap: var(--spacing-1);
   flex-wrap: wrap;
-  font-size: 11px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
 }
 
 .kanban-card-status {
-  font-size: 11px;
+  font-family: var(--font-mono);
+  font-size: 10px;
   color: var(--color-text-muted);
 }
 
 .kanban-local-chip {
-  background: var(--color-accent-yellow-soft);
-  color: var(--color-text);
-  font-size: 11px;
+  background: var(--color-accent);
+  color: var(--color-text-on-yellow);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
   padding: 1px 6px;
-  border-radius: var(--radius-sm);
+  letter-spacing: 0.06em;
 }
 
 .kanban-card-title {
@@ -1531,9 +2170,8 @@ textarea:focus {
   max-height: 420px;
   overflow: auto;
   padding: var(--spacing-3) var(--spacing-4);
-  background: var(--color-surface-hover);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-accent);
   box-shadow: var(--shadow-lg);
   color: var(--color-text);
 }
@@ -1556,7 +2194,8 @@ textarea:focus {
 }
 
 .kanban-card-due {
-  font-size: 11px;
+  font-family: var(--font-mono);
+  font-size: 10px;
   color: var(--color-text-muted);
 }
 
@@ -1576,7 +2215,7 @@ textarea:focus {
 }
 
 /* =============================================================
-   カンバンマッピング (設定画面)
+   カンバンマッピング
    ============================================================= */
 
 .kanban-mapping-editor {
@@ -1586,9 +2225,8 @@ textarea:focus {
 }
 
 .kanban-mapping-project {
-  background: var(--color-surface);
+  background: var(--color-surface-muted);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
   padding: var(--spacing-3);
 }
 
@@ -1605,13 +2243,15 @@ textarea:focus {
 
 .kanban-mapping-project-header .muted {
   color: var(--color-text-subtle);
-  font-size: 11px;
+  font-family: var(--font-mono);
+  font-size: 10px;
 }
 
 .kanban-mapping-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
 }
 
 .kanban-mapping-table th,
@@ -1622,45 +2262,54 @@ textarea:focus {
 }
 
 .kanban-mapping-table th {
-  color: var(--color-text-muted);
-  font-weight: 500;
+  color: var(--color-accent);
+  font-weight: 600;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 
 .status-swatch {
   display: inline-block;
   width: 10px;
   height: 10px;
-  border-radius: 50%;
+  border-radius: 0;
   margin-right: 6px;
   vertical-align: middle;
+  box-shadow: 0 0 6px currentColor;
 }
 
 .local-task-status {
-  font-size: 11px;
+  font-family: var(--font-mono);
+  font-size: 10px;
   padding: 2px 4px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
   background: var(--color-surface);
   flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .local-task-status[data-status="done"] {
-  background: var(--color-success-soft);
-  color: var(--color-success);
+  background: var(--color-green-soft);
+  color: var(--color-green-acid);
+  border-color: var(--color-green-acid);
 }
 
 .local-task-status[data-status="in_progress"] {
-  background: var(--color-accent-blue-soft);
-  color: var(--color-accent-blue);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
 .local-task-status[data-status="resolved"] {
-  background: var(--color-primary-soft);
-  color: var(--color-primary-hover);
+  background: var(--color-cyan-soft);
+  color: var(--color-cyan);
+  border-color: var(--color-cyan);
 }
 
 /* =============================================================
-   スクロールバー (Webkit)
+   スクロールバー
    ============================================================= */
 
 ::-webkit-scrollbar {
@@ -1674,10 +2323,81 @@ textarea:focus {
 
 ::-webkit-scrollbar-thumb {
   background: var(--color-border-strong);
-  border-radius: 5px;
   border: 2px solid var(--color-bg);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-subtle);
+  background: var(--color-accent);
+  box-shadow: 0 0 6px var(--color-accent);
+}
+
+/* =============================================================
+   期限切れ / 本日期限ハイライト
+   ============================================================= */
+
+@keyframes overdue-pulse {
+  0%,
+  100% {
+    border-color: var(--color-magenta);
+    box-shadow: 0 0 0 rgba(255, 0, 60, 0);
+  }
+  50% {
+    border-color: #ff5577;
+    box-shadow: var(--shadow-glow-danger);
+  }
+}
+
+.issue-card.is-overdue,
+.today-item.is-overdue,
+.kanban-card.is-overdue,
+.local-task-item.is-overdue {
+  background: linear-gradient(180deg, rgba(255, 0, 60, 0.12) 0%, var(--color-surface) 100%);
+  border-color: var(--color-magenta);
+  animation: overdue-pulse 1.2s ease-in-out infinite;
+}
+
+.issue-card.is-due-today,
+.today-item.is-due-today,
+.kanban-card.is-due-today,
+.local-task-item.is-due-today {
+  background: linear-gradient(180deg, rgba(252, 238, 10, 0.10) 0%, var(--color-surface) 100%);
+  border-color: var(--color-accent);
+}
+
+.meta-due.is-overdue,
+.kanban-card-due.is-overdue,
+.local-task-due.is-overdue {
+  color: var(--color-magenta);
+  font-weight: 700;
+  text-shadow: 0 0 6px rgba(255, 0, 60, 0.6);
+}
+
+.meta-due.is-due-today,
+.kanban-card-due.is-due-today,
+.local-task-due.is-due-today {
+  color: var(--color-accent);
+  font-weight: 700;
+  text-shadow: 0 0 6px rgba(252, 238, 10, 0.6);
+}
+
+/* =============================================================
+   アニメーション (reduced-motion 対応)
+   ============================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-logo,
+  .cyber-glitch {
+    animation: none !important;
+  }
+
+  .issue-card.is-overdue,
+  .today-item.is-overdue,
+  .kanban-card.is-overdue,
+  .local-task-item.is-overdue {
+    animation: none !important;
+  }
+
+  * {
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -121,6 +121,7 @@ export function SettingsForm({ initial }: Props) {
       {message && <div className="info-banner">{message}</div>}
 
       <section>
+        <span className="cyber-label" style={{ display: "block", marginBottom: 6 }}>{"<<< AI PROVIDER >>>"}</span>
         <h3>AI プロバイダ</h3>
         <label>
           プロバイダ:{" "}
@@ -150,6 +151,7 @@ export function SettingsForm({ initial }: Props) {
       </section>
 
       <section>
+        <span className="cyber-label" style={{ display: "block", marginBottom: 6 }}>{"<<< BACKLOG / USER >>>"}</span>
         <h3>自分の Backlog ユーザ (担当チケットの絞り込みに使用)</h3>
         <p className="hint">
           ここで設定したユーザ ID で「Backlog から取り込み」時に <code>assigneeId</code> フィルタが掛かります。未設定だと取り込みはスキップされます。
@@ -204,6 +206,7 @@ export function SettingsForm({ initial }: Props) {
       </section>
 
       <section>
+        <span className="cyber-label" style={{ display: "block", marginBottom: 6 }}>{"<<< BACKLOG / PROJECTS >>>"}</span>
         <h3>Backlog プロジェクト</h3>
         {settings.backlog.projects.map((p, i) => (
           <div key={i} className="row">
@@ -236,6 +239,7 @@ export function SettingsForm({ initial }: Props) {
       </section>
 
       <section>
+        <span className="cyber-label" style={{ display: "block", marginBottom: 6 }}>{"<<< STATUS MAPPING >>>"}</span>
         <h3>ステータスマッピング (「今日やる」着手時の遷移先)</h3>
         {settings.statusMapping.map((m, i) => (
           <div key={i} className="row">
@@ -265,6 +269,7 @@ export function SettingsForm({ initial }: Props) {
       </section>
 
       <section>
+        <span className="cyber-label" style={{ display: "block", marginBottom: 6 }}>{"<<< KANBAN MAPPING >>>"}</span>
         <h3>カンバンマッピング (Backlog ステータス → カンバン列)</h3>
         <p className="hint">
           各プロジェクトの Backlog ステータスをカンバンの 4 列 (未対応/処理中/処理済み/完了) に割り当てます。未割当のステータスはカンバンに表示されません。
