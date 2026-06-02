@@ -1,52 +1,79 @@
 /* =============================================================
-   Task Maestro — モダンデザインシステム
+   Task Maestro — Cyberpunk 2077 風デザインシステム
    ============================================================= */
 
 :root {
   color-scheme: dark;
 
-  /* ブランドアクセント (ダーク背景に映える彩度) */
-  --color-primary: #f472b6;
-  --color-primary-hover: #ec4899;
-  --color-primary-soft: rgba(244, 114, 182, 0.16);
-  --color-accent-blue: #60a5fa;
-  --color-accent-blue-soft: rgba(96, 165, 250, 0.16);
-  --color-accent-yellow: #fbbf24;
-  --color-accent-yellow-soft: rgba(251, 191, 36, 0.14);
+  /* ===== サーフェス・ボーダー ===== */
+  --color-bg: #000000;
+  --color-surface: #0a0e14;
+  --color-surface-alt: #14181f;
+  --color-surface-hover: #14181f;
+  --color-surface-muted: #0f1218;
+  --color-border: #2a2e36;
+  --color-border-strong: #3a3f4a;
+  --color-border-hot: #fcee0a;
 
-  /* レイヤード ダークサーフェス (slate ベース) */
-  --color-bg: #0b0f1a;
-  --color-surface: #131826;
-  --color-surface-hover: #1a2030;
-  --color-surface-muted: #161c2a;
-  --color-border: #232b3d;
-  --color-border-strong: #313a50;
+  /* ===== メインアクセント (蛍光イエロー) ===== */
+  --color-accent: #fcee0a;
+  --color-accent-hot: #fffa38;
+  --color-accent-deep: #c9bd00;
+  --color-accent-soft: rgba(252, 238, 10, 0.12);
 
-  --color-text: #e6e9f0;
-  --color-text-muted: #97a0b3;
-  --color-text-subtle: #6b7385;
-  --color-text-on-primary: #1a1023;
+  /* 互換: 旧 --color-primary 系のエイリアス */
+  --color-primary: var(--color-accent);
+  --color-primary-hover: var(--color-accent-hot);
+  --color-primary-soft: var(--color-accent-soft);
 
-  --color-success: #34d399;
-  --color-success-soft: rgba(52, 211, 153, 0.15);
-  --color-danger: #f87171;
-  --color-danger-soft: rgba(248, 113, 113, 0.15);
+  /* ===== サブアクセント ===== */
+  --color-cyan: #00f0ff;
+  --color-cyan-soft: rgba(0, 240, 255, 0.14);
+  --color-magenta: #ff003c;
+  --color-magenta-soft: rgba(255, 0, 60, 0.14);
+  --color-green-acid: #39ff14;
+  --color-green-soft: rgba(57, 255, 20, 0.14);
+  --color-orange-warn: #ff6b1a;
+  --color-orange-soft: rgba(255, 107, 26, 0.14);
 
-  --radius-sm: 7px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
+  /* 互換: 旧 accent エイリアス */
+  --color-accent-blue: var(--color-cyan);
+  --color-accent-blue-soft: var(--color-cyan-soft);
+  --color-accent-yellow: var(--color-accent);
+  --color-accent-yellow-soft: var(--color-accent-soft);
 
-  /* ダーク背景では影 + 微かな内側ハイライトで立体感を出す */
+  /* ===== テキスト ===== */
+  --color-text: #f5f5f5;
+  --color-text-muted: #8a9099;
+  --color-text-subtle: #5b616b;
+  --color-text-on-yellow: #0a0e14;
+  --color-text-on-primary: #0a0e14;
+
+  /* ===== セマンティック (互換用) ===== */
+  --color-success: var(--color-green-acid);
+  --color-success-soft: var(--color-green-soft);
+  --color-danger: var(--color-magenta);
+  --color-danger-soft: var(--color-magenta-soft);
+
+  /* ===== 角丸: clip-path 採用のため小さめに ===== */
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+
+  /* ===== シャドウ (グロー込み) ===== */
   --shadow-sm:
-    0 1px 2px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(255, 255, 255, 0.02) inset;
+    0 1px 2px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(252, 238, 10, 0.04) inset;
   --shadow-md:
-    0 4px 12px -2px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+    0 4px 14px -2px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(252, 238, 10, 0.06) inset;
   --shadow-lg:
-    0 16px 40px -8px rgba(0, 0, 0, 0.6),
-    0 4px 12px -4px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+    0 18px 44px -8px rgba(0, 0, 0, 0.8),
+    0 4px 14px -4px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(252, 238, 10, 0.08) inset;
+  --shadow-glow: 0 0 12px rgba(252, 238, 10, 0.45);
+  --shadow-glow-strong: 0 0 18px rgba(252, 238, 10, 0.7);
+  --shadow-glow-danger: 0 0 12px rgba(255, 0, 60, 0.55);
 
   --spacing-1: 4px;
   --spacing-2: 8px;
@@ -55,9 +82,12 @@
   --spacing-5: 20px;
   --spacing-6: 24px;
 
-  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Sans",
-    "Hiragino Kaku Gothic ProN", "Noto Sans CJK JP", sans-serif;
-  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  /* ===== フォント変数 ===== */
+  --font-sans: var(--font-sans-google), "Inter", system-ui, -apple-system, "Segoe UI",
+    Roboto, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans CJK JP", sans-serif;
+  --font-display: var(--font-display-google), "Rajdhani", var(--font-sans);
+  --font-mono: var(--font-mono-google), "JetBrains Mono", ui-monospace, "SFMono-Regular",
+    Menlo, Consolas, monospace;
 }
 
 * {
@@ -73,37 +103,86 @@ body {
   background: var(--color-bg);
   font-size: 14px;
   line-height: 1.5;
-  /* 微かなラディアル + 線形グラデで奥行きを出す (フラットすぎない) */
-  background-image:
-    radial-gradient(1200px 600px at 100% -10%, rgba(244, 114, 182, 0.06), transparent 60%),
-    radial-gradient(900px 500px at -10% 110%, rgba(96, 165, 250, 0.05), transparent 60%);
-  background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  position: relative;
+  min-height: 100vh;
+}
+
+/* CRT スキャンライン (グローバルオーバーレイ) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.045) 0 1px,
+    transparent 1px 3px
+  );
+  mix-blend-mode: overlay;
+}
+
+/* ノイズ背景 (グローバルオーバーレイ) */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.7 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
 }
 
 a {
-  color: inherit;
+  color: var(--color-accent);
   text-decoration: none;
-  transition: color 0.15s;
+  transition: color 0.15s, text-shadow 0.15s;
+}
+
+a:hover {
+  color: var(--color-accent-hot);
+  text-shadow: var(--shadow-glow);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text);
 }
 
 h1 {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
-  letter-spacing: -0.01em;
   margin: 0 0 var(--spacing-4);
+  position: relative;
+  display: inline-block;
+  padding-bottom: 6px;
+}
+
+h1::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 48px;
+  height: 4px;
+  background: var(--color-accent);
+  box-shadow: var(--shadow-glow);
 }
 
 h2 {
   font-size: 16px;
   font-weight: 600;
   margin: 0 0 var(--spacing-3);
-  color: var(--color-text);
 }
 
 h3 {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   margin: 0 0 var(--spacing-2);
 }
@@ -1680,4 +1759,41 @@ textarea:focus {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-text-subtle);
+}
+
+/* =============================================================
+   期限切れ / 本日期限ハイライト (チケット一覧 / 今日やる / カンバン共通)
+   - is-overdue: 期限切れ (dueDate < 今日 JST)。カード背景を薄い赤 + 期限テキスト赤太字。
+   - is-due-today: 本日期限。カード背景を薄い黄 + 期限テキスト黄太字で「気付かせる」程度の警告。
+   ============================================================= */
+
+.issue-card.is-overdue,
+.today-item.is-overdue,
+.kanban-card.is-overdue,
+.local-task-item.is-overdue {
+  background: var(--color-danger-soft);
+  border-color: var(--color-danger);
+}
+
+.issue-card.is-due-today,
+.today-item.is-due-today,
+.kanban-card.is-due-today,
+.local-task-item.is-due-today {
+  background: var(--color-accent-yellow-soft);
+  border-color: var(--color-accent-yellow);
+}
+
+/* 期限テキスト: 赤太字 (期限切れ) / 黄太字 (本日期限) */
+.meta-due.is-overdue,
+.kanban-card-due.is-overdue,
+.local-task-due.is-overdue {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+.meta-due.is-due-today,
+.kanban-card-due.is-due-today,
+.local-task-due.is-due-today {
+  color: var(--color-accent-yellow);
+  font-weight: 600;
 }
