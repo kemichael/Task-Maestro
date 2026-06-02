@@ -1,7 +1,29 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import { Rajdhani, JetBrains_Mono, Inter } from "next/font/google";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-sans-google",
+  display: "swap",
+});
+
+const rajdhani = Rajdhani({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-display-google",
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-mono-google",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Task Maestro",
@@ -13,7 +35,10 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ja">
+    <html
+      lang="ja"
+      className={`${inter.variable} ${rajdhani.variable} ${jetbrainsMono.variable}`}
+    >
       <body>
         <header className="app-header">
           <Link href="/" className="brand" aria-label="Task Maestro ホーム">
