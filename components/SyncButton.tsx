@@ -25,7 +25,12 @@ export function SyncButton({ label = "Backlog から取り込み" }: Props) {
       }
       const body = (await res.json()) as
         | { skipped: "no_projects" | "self_user_id_missing" }
-        | { fetched: number; inserted: number; updated: number };
+        | {
+            fetched: number;
+            inserted: number;
+            updated: number;
+            removed: number;
+          };
       if ("skipped" in body) {
         const map: Record<string, string> = {
           no_projects: "対象 Backlog プロジェクトが未設定です。設定画面で登録してください。",
@@ -35,7 +40,9 @@ export function SyncButton({ label = "Backlog から取り込み" }: Props) {
         setError(map[body.skipped] ?? `取り込みスキップ: ${body.skipped}`);
         return;
       }
-      setMessage(`取得 ${body.fetched} 件 (新規 ${body.inserted} / 更新 ${body.updated})`);
+      setMessage(
+        `取得 ${body.fetched} 件 (新規 ${body.inserted} / 更新 ${body.updated} / 削除 ${body.removed})`,
+      );
       router.refresh();
     });
   };
