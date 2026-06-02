@@ -249,7 +249,10 @@ export function KanbanBoard({ board, kanbanMappings }: Props) {
             onDrop={(e) => handleDrop(col, e)}
           >
             <div className="kanban-column-header">
-              <span className="kanban-column-title">{KANBAN_COLUMN_LABEL[col]}</span>
+              <span className="kanban-column-title">
+                <span className="cyber-label" style={{ marginRight: 6 }}>{"STAGE →"}</span>
+                {KANBAN_COLUMN_LABEL[col]}
+              </span>
               <span className="kanban-column-count">{board[col].length}</span>
             </div>
             <div className="kanban-column-body">
