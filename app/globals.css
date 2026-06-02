@@ -2322,38 +2322,72 @@ textarea:focus {
 }
 
 /* =============================================================
-   期限切れ / 本日期限ハイライト (チケット一覧 / 今日やる / カンバン共通)
-   - is-overdue: 期限切れ (dueDate < 今日 JST)。カード背景を薄い赤 + 期限テキスト赤太字。
-   - is-due-today: 本日期限。カード背景を薄い黄 + 期限テキスト黄太字で「気付かせる」程度の警告。
+   期限切れ / 本日期限ハイライト
    ============================================================= */
+
+@keyframes overdue-pulse {
+  0%,
+  100% {
+    border-color: var(--color-magenta);
+    box-shadow: 0 0 0 rgba(255, 0, 60, 0);
+  }
+  50% {
+    border-color: #ff5577;
+    box-shadow: var(--shadow-glow-danger);
+  }
+}
 
 .issue-card.is-overdue,
 .today-item.is-overdue,
 .kanban-card.is-overdue,
 .local-task-item.is-overdue {
-  background: var(--color-danger-soft);
-  border-color: var(--color-danger);
+  background: linear-gradient(180deg, rgba(255, 0, 60, 0.12) 0%, var(--color-surface) 100%);
+  border-color: var(--color-magenta);
+  animation: overdue-pulse 1.2s ease-in-out infinite;
 }
 
 .issue-card.is-due-today,
 .today-item.is-due-today,
 .kanban-card.is-due-today,
 .local-task-item.is-due-today {
-  background: var(--color-accent-yellow-soft);
-  border-color: var(--color-accent-yellow);
+  background: linear-gradient(180deg, rgba(252, 238, 10, 0.10) 0%, var(--color-surface) 100%);
+  border-color: var(--color-accent);
 }
 
-/* 期限テキスト: 赤太字 (期限切れ) / 黄太字 (本日期限) */
 .meta-due.is-overdue,
 .kanban-card-due.is-overdue,
 .local-task-due.is-overdue {
-  color: var(--color-danger);
-  font-weight: 600;
+  color: var(--color-magenta);
+  font-weight: 700;
+  text-shadow: 0 0 6px rgba(255, 0, 60, 0.6);
 }
 
 .meta-due.is-due-today,
 .kanban-card-due.is-due-today,
 .local-task-due.is-due-today {
-  color: var(--color-accent-yellow);
-  font-weight: 600;
+  color: var(--color-accent);
+  font-weight: 700;
+  text-shadow: 0 0 6px rgba(252, 238, 10, 0.6);
+}
+
+/* =============================================================
+   アニメーション (reduced-motion 対応)
+   ============================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-logo,
+  .cyber-glitch {
+    animation: none !important;
+  }
+
+  .issue-card.is-overdue,
+  .today-item.is-overdue,
+  .kanban-card.is-overdue,
+  .local-task-item.is-overdue {
+    animation: none !important;
+  }
+
+  * {
+    transition-duration: 0.01ms !important;
+  }
 }
