@@ -202,3 +202,44 @@ export function deleteById(id: number): void {
     throw new DatabaseError("チケットの削除に失敗", error);
   }
 }
+
+/**
+ * 指定担当者で保存されているローカルチケットの ID 一覧を返す。
+ * sync 時の差分検出 (Backlog 側で担当が外れたチケットを特定) で利用。
+ */
+export function findIdsByAssignee(assigneeId: number): number[] {
+  try {
+    const db = getDb();
+    const rows = db
+      .prepare<[number], { id: number }>(
+        "SELECT id FROM backlog_issue WHERE assignee_id = ?",
+      )
+      .all(assigneeId);
+    return rows.map((r) => r.id);
+  } catch (error) {
+    throw new DatabaseError("担当者別チケット ID 取得に失敗", error);
+  }
+}
+
+/**
+ * 指定 ID 群を一括で物理削除する。トランザクションで原子性を保つ。
+ * 戻り値は実際に削除された行数。
+ */
+export function deleteByIds(ids: number[]): number {
+  if (ids.length === 0) return 0;
+  try {
+    const db = getDb();
+    const stmt = db.prepare("DELETE FROM backlog_issue WHERE id = ?");
+    const tx = db.transaction((targets: number[]) => {
+      let count = 0;
+      for (const id of targets) {
+        const info = stmt.run(id);
+        count += info.changes;
+      }
+      return count;
+    });
+    return tx(ids);
+  } catch (error) {
+    throw new DatabaseError("チケットの一括削除に失敗", error);
+  }
+}
