@@ -6,7 +6,13 @@ import type { BacklogIssue } from "@/lib/types/backlog";
 import { MarkdownEditor } from "./MarkdownEditor";
 import { MarkdownView } from "./MarkdownView";
 import { isCompletedStatus } from "@/lib/utils/issueStatus";
-import { normalizeDateForInput } from "@/lib/utils/date";
+import {
+  daysOverdueJst,
+  isDueTodayJst,
+  isOverdueJst,
+  normalizeDateForInput,
+  todayJst,
+} from "@/lib/utils/date";
 import type { BacklogProjectStatus } from "@/lib/types/backlog";
 
 interface ParentRef {
@@ -162,6 +168,9 @@ export function IssueListClient({ issues, parentMap = {} }: Props) {
   // ソート: デフォルトは「親子順 (期限昇順、期限なし末尾)」
   const [sortKey, setSortKey] = useState<SortKey>("parent");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+
+  // 期限切れ / 本日期限ハイライト用に JST 今日を 1 回算出 (レンダリング軽量)
+  const today = todayJst();
 
   const projectOptions = useMemo(() => {
     const map = new Map<number, string>();
@@ -467,10 +476,16 @@ export function IssueListClient({ issues, parentMap = {} }: Props) {
             const parent = issue.parentIssueId ? parentMap[issue.parentIssueId] : undefined;
             const hasParent = !!issue.parentIssueId;
             const isSelected = selectedId === issue.id;
+            // 完了済みは「もう終わってる」ので期限切れ強調しない
+            const completed = isCompletedStatus(issue.status);
+            const overdue = !completed && isOverdueJst(issue.dueDate, today);
+            const dueToday =
+              !completed && !overdue && isDueTodayJst(issue.dueDate, today);
+            const dueClass = overdue ? "is-overdue" : dueToday ? "is-due-today" : "";
             return (
               <div
                 key={issue.id}
-                className={`issue-card ${hasParent ? "issue-card-child" : ""} ${isSelected ? "is-selected" : ""}`}
+                className={`issue-card ${hasParent ? "issue-card-child" : ""} ${isSelected ? "is-selected" : ""} ${dueClass}`.trim()}
                 onClick={() => handleSelect(issue)}
                 data-issue-id={issue.id}
                 data-issue-key={issue.issueKey}
@@ -516,7 +531,11 @@ export function IssueListClient({ issues, parentMap = {} }: Props) {
                       <span className={priorityBadgeClass(issue.priority)}>{issue.priority.name}</span>
                     )}
                     {issue.dueDate && (
-                      <span className="meta-due">📅 {issue.dueDate}</span>
+                      <span className={`meta-due ${dueClass}`.trim()}>
+                        {overdue ? "⚠️ " : dueToday ? "⏰ " : ""}📅 {issue.dueDate.slice(0, 10)}
+                        {overdue && ` (${daysOverdueJst(issue.dueDate, today)}日超過)`}
+                        {dueToday && " (本日)"}
+                      </span>
                     )}
                     {issue.assignee && (
                       <span className="meta-assignee">👤 {issue.assignee.name}</span>

@@ -5,6 +5,12 @@ import { useRouter } from "next/navigation";
 import type { BacklogIssue } from "@/lib/types/backlog";
 import type { BacklogProjectSetting } from "@/lib/types/settings";
 import { isCompletedStatus } from "@/lib/utils/issueStatus";
+import {
+  daysOverdueJst,
+  isDueTodayJst,
+  isOverdueJst,
+  todayJst,
+} from "@/lib/utils/date";
 import { EditTicketModal } from "./EditTicketModal";
 
 interface ParentRef {
@@ -54,6 +60,9 @@ export function TodayList({ issues, projects = [], parentMap = {} }: Props) {
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [keyword, setKeyword] = useState("");
   const [projectFilter, setProjectFilter] = useState<number | "">("");
+
+  // 期限切れ / 本日期限ハイライト用 JST 今日
+  const today = todayJst();
 
   // 設定にプロジェクト名がない場合は一覧から派生
   const projectOptions = useMemo(() => {
@@ -163,10 +172,16 @@ export function TodayList({ issues, projects = [], parentMap = {} }: Props) {
       {error && <div className="error-banner">{error}</div>}
       {sorted.length === 0 && <div className="today-empty">条件に一致するタスクがありません</div>}
       <ul>
-        {sorted.map((issue) => (
+        {sorted.map((issue) => {
+          const completed = isCompletedStatus(issue.status);
+          const overdue = !completed && isOverdueJst(issue.dueDate, today);
+          const dueToday =
+            !completed && !overdue && isDueTodayJst(issue.dueDate, today);
+          const dueClass = overdue ? "is-overdue" : dueToday ? "is-due-today" : "";
+          return (
           <li
             key={issue.id}
-            className="today-item"
+            className={`today-item ${dueClass}`.trim()}
             data-issue-id={issue.id}
             data-issue-key={issue.issueKey}
             data-issue-summary={issue.summary}
@@ -223,7 +238,13 @@ export function TodayList({ issues, projects = [], parentMap = {} }: Props) {
                     {issue.priority.name}
                   </span>
                 )}
-                {issue.dueDate && <span className="meta-due">📅 {issue.dueDate}</span>}
+                {issue.dueDate && (
+                  <span className={`meta-due ${dueClass}`.trim()}>
+                    {overdue ? "⚠️ " : dueToday ? "⏰ " : ""}📅 {issue.dueDate.slice(0, 10)}
+                    {overdue && ` (${daysOverdueJst(issue.dueDate, today)}日超過)`}
+                    {dueToday && " (本日)"}
+                  </span>
+                )}
               </div>
             </div>
             <div className="today-item-actions">
@@ -249,7 +270,8 @@ export function TodayList({ issues, projects = [], parentMap = {} }: Props) {
               </label>
             </div>
           </li>
-        ))}
+          );
+        })}
       </ul>
       {editingIssue && (
         <EditTicketModal
