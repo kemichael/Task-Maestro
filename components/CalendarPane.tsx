@@ -12,13 +12,15 @@ import type {
   EventInput,
   EventReceiveArg,
 } from "@fullcalendar/core";
+import { resolveEventColor } from "@/lib/constants/googleEventColors";
+import type { CalendarEvent } from "@/lib/types/calendar";
 
-async function fetchEvents(from: string, to: string): Promise<EventInput[]> {
+async function fetchEvents(from: string, to: string): Promise<CalendarEvent[]> {
   const res = await fetch(`/api/google/calendar/events?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`);
   if (!res.ok) {
     throw new Error(`カレンダー取得に失敗 (${res.status})`);
   }
-  return (await res.json()) as EventInput[];
+  return (await res.json()) as CalendarEvent[];
 }
 
 export function CalendarPane() {
@@ -169,7 +171,24 @@ export function CalendarPane() {
         events={async (info, success, failure) => {
           try {
             const events = await fetchEvents(info.start.toISOString(), info.end.toISOString());
-            success(events);
+            const inputs: EventInput[] = events.map((e) => {
+              const c = resolveEventColor(e.colorId);
+              return {
+                id: e.id,
+                title: e.title,
+                start: e.start,
+                end: e.end,
+                backgroundColor: c.background,
+                borderColor: c.background,
+                textColor: c.foreground,
+                extendedProps: {
+                  description: e.description,
+                  htmlLink: e.htmlLink,
+                  colorId: e.colorId,
+                },
+              };
+            });
+            success(inputs);
           } catch (e) {
             setError((e as Error).message);
             failure(e as Error);
