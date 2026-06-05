@@ -1,3 +1,7 @@
+export type GoogleEventColorId =
+  | "1" | "2" | "3" | "4" | "5" | "6"
+  | "7" | "8" | "9" | "10" | "11";
+
 export interface CalendarEvent {
   id: string;
   title: string;
@@ -5,6 +9,7 @@ export interface CalendarEvent {
   end: string;
   description?: string;
   htmlLink?: string;
+  colorId?: GoogleEventColorId;
 }
 
 export interface CreateCalendarEventInput {
@@ -12,6 +17,7 @@ export interface CreateCalendarEventInput {
   start: string;
   end?: string;
   description?: string;
+  colorId?: GoogleEventColorId;
 }
 
 export interface UpdateCalendarEventInput {
@@ -19,4 +25,5 @@ export interface UpdateCalendarEventInput {
   start?: string;
   end?: string;
   description?: string;
+  colorId?: GoogleEventColorId | null;
 }
