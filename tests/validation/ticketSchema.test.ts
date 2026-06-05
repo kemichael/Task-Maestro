@@ -3,6 +3,7 @@ import {
   ticketDraftSchema,
   patchIssueSchema,
   calendarEventCreateSchema,
+  calendarEventPatchSchema,
 } from "@/lib/validation/ticketSchema";
 
 describe("ticketDraftSchema", () => {
@@ -72,5 +73,64 @@ describe("calendarEventCreateSchema", () => {
     expect(calendarEventCreateSchema.safeParse({ title: "", start: "2026-01-01T09:00:00Z" }).success).toBe(false);
     expect(calendarEventCreateSchema.safeParse({ title: "x", start: "" }).success).toBe(false);
     expect(calendarEventCreateSchema.safeParse({ title: "x", start: "2026-01-01T09:00:00Z" }).success).toBe(true);
+  });
+});
+
+describe("calendarEventCreateSchema (colorId)", () => {
+  it("colorId なしは通る", () => {
+    const r = calendarEventCreateSchema.safeParse({
+      title: "x",
+      start: "2026-06-05T10:00:00Z",
+    });
+    expect(r.success).toBe(true);
+  });
+
+  it("colorId='7' は通る", () => {
+    const r = calendarEventCreateSchema.safeParse({
+      title: "x",
+      start: "2026-06-05T10:00:00Z",
+      colorId: "7",
+    });
+    expect(r.success).toBe(true);
+  });
+
+  it("colorId='12' は弾く", () => {
+    const r = calendarEventCreateSchema.safeParse({
+      title: "x",
+      start: "2026-06-05T10:00:00Z",
+      colorId: "12",
+    });
+    expect(r.success).toBe(false);
+  });
+
+  it("colorId が数値の 7 は弾く (文字列必須)", () => {
+    const r = calendarEventCreateSchema.safeParse({
+      title: "x",
+      start: "2026-06-05T10:00:00Z",
+      colorId: 7,
+    });
+    expect(r.success).toBe(false);
+  });
+});
+
+describe("calendarEventPatchSchema (colorId)", () => {
+  it("colorId='11' は通る", () => {
+    const r = calendarEventPatchSchema.safeParse({ colorId: "11" });
+    expect(r.success).toBe(true);
+  });
+
+  it("colorId=null は通る (Default 化)", () => {
+    const r = calendarEventPatchSchema.safeParse({ colorId: null });
+    expect(r.success).toBe(true);
+  });
+
+  it("colorId=undefined は通る (変更しない)", () => {
+    const r = calendarEventPatchSchema.safeParse({});
+    expect(r.success).toBe(true);
+  });
+
+  it("colorId='0' は弾く", () => {
+    const r = calendarEventPatchSchema.safeParse({ colorId: "0" });
+    expect(r.success).toBe(false);
   });
 });
