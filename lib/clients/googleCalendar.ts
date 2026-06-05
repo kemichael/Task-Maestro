@@ -6,6 +6,7 @@ import type {
   CalendarEvent,
   CreateCalendarEventInput,
   UpdateCalendarEventInput,
+  GoogleEventColorId,
 } from "../types/calendar";
 import { logger } from "../logger";
 
@@ -16,9 +17,13 @@ function getCalendar() {
   return google.calendar({ version: "v3", auth: getOAuth2Client() });
 }
 
-function toCalendarEvent(api: NonNullable<Awaited<ReturnType<ReturnType<typeof getCalendar>["events"]["get"]>>["data"]>): CalendarEvent {
+function toCalendarEvent(
+  api: NonNullable<Awaited<ReturnType<ReturnType<typeof getCalendar>["events"]["get"]>>["data"]>,
+): CalendarEvent {
   const start = api.start?.dateTime ?? api.start?.date ?? "";
   const end = api.end?.dateTime ?? api.end?.date ?? "";
+  const rawColorId = api.colorId ?? undefined;
+  const colorId = isGoogleEventColorId(rawColorId) ? rawColorId : undefined;
   return {
     id: api.id ?? "",
     title: api.summary ?? "(無題)",
@@ -26,7 +31,13 @@ function toCalendarEvent(api: NonNullable<Awaited<ReturnType<ReturnType<typeof g
     end,
     description: api.description ?? undefined,
     htmlLink: api.htmlLink ?? undefined,
+    colorId,
   };
+}
+
+function isGoogleEventColorId(v: string | undefined): v is GoogleEventColorId {
+  if (!v) return false;
+  return /^([1-9]|1[01])$/.test(v);
 }
 
 interface GoogleApiErrorShape {
@@ -103,14 +114,18 @@ export async function createEvent(input: CreateCalendarEventInput): Promise<Cale
     const endDate = input.end
       ? new Date(input.end)
       : new Date(startDate.getTime() + DEFAULT_EVENT_DURATION_MIN * 60 * 1000);
+    const requestBody: Record<string, unknown> = {
+      summary: input.title,
+      description: input.description,
+      start: { dateTime: startDate.toISOString() },
+      end: { dateTime: endDate.toISOString() },
+    };
+    if (input.colorId !== undefined) {
+      requestBody.colorId = input.colorId;
+    }
     const res = await calendar.events.insert({
       calendarId: CALENDAR_ID,
-      requestBody: {
-        summary: input.title,
-        description: input.description,
-        start: { dateTime: startDate.toISOString() },
-        end: { dateTime: endDate.toISOString() },
-      },
+      requestBody,
     });
     if (!res.data) {
       throw new ExternalApiError("Google Calendar の予定作成レスポンスが空です", "unknown", false);
@@ -135,6 +150,10 @@ export async function patchEvent(
     }
     if (input.end !== undefined) {
       requestBody.end = { dateTime: new Date(input.end).toISOString() };
+    }
+    if (input.colorId !== undefined) {
+      // null = Default 化 (Google API 側で colorId をクリア)
+      requestBody.colorId = input.colorId;
     }
     const res = await calendar.events.patch({
       calendarId: CALENDAR_ID,
