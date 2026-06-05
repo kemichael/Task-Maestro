@@ -82,6 +82,10 @@
   --spacing-5: 20px;
   --spacing-6: 24px;
 
+  /* ===== レイアウト変数 ===== */
+  /* app-header の実高 (ロゴ画像 64 + padding 上下 12*2 + border 上下 1*2 ≒ 90px) */
+  --app-header-h: 90px;
+
   /* ===== フォント変数 ===== */
   --font-sans: var(--font-sans-google), "Inter", system-ui, -apple-system, "Segoe UI",
     Roboto, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans CJK JP", sans-serif;
@@ -677,10 +681,21 @@ button:not(:disabled):active {
   align-items: center;
 }
 
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  /* ビューポート高からヘッダー実高 (約 90px) と app-main の上下 padding を差し引いた領域に収め、
+     ページ自体はスクロールさせない */
+  height: calc(100dvh - var(--app-header-h) - var(--spacing-6) * 2);
+  min-height: 0;
+}
+
 .dashboard-grid {
   display: grid;
   grid-template-columns: 380px 1fr;
   gap: var(--spacing-4);
+  flex: 1;
+  min-height: 0;
 }
 
 .dashboard-left,
@@ -698,6 +713,15 @@ button:not(:disabled):active {
     0 100%,
     0 12px
   );
+  min-height: 0;
+}
+
+.dashboard-left {
+  overflow-y: auto;
+}
+
+.dashboard-right {
+  overflow: hidden;
 }
 
 .dashboard-left::before,
