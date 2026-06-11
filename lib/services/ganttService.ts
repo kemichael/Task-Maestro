@@ -4,6 +4,7 @@ import type { LocalTask } from "../types/localTask";
 import type { BacklogProjectSetting } from "../types/settings";
 import type { GanttBarState, GanttGroup, GanttModel, GanttRow } from "../types/gantt";
 import { todayJst } from "../utils/date";
+import { isCompletedIssue } from "../utils/issueStatus";
 
 export const GANTT_PAST_DAYS = 3;
 export const GANTT_FUTURE_DAYS = 14;
@@ -107,7 +108,7 @@ function byDueAsc(a: GanttRow, b: GanttRow): number {
  * Backlog チケットとローカルタスクからガント描画モデルを構築する純粋関数。
  * - 期限ありはプロジェクト（ローカルは専用グループ）に分類し期限昇順。
  * - 期限なしは undated に振り分け。
- * - 完了済みローカルタスクは防御的に除外。
+ * - 完了済みは除外（Backlog: isCompletedIssue / ローカル: status === "done"）。
  */
 export function buildGanttRows(
   issues: BacklogIssue[],
@@ -136,6 +137,7 @@ export function buildGanttRows(
   }
 
   for (const issue of issues) {
+    if (isCompletedIssue(issue)) continue; // 完了チケットはガントに表示しない
     const row = toRow(`backlog-${issue.id}`, "backlog", issue.summary, issue.dueDate, today, issue.issueKey);
     if (row.barState === "none") {
       undated.push(row);
