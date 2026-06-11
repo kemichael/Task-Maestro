@@ -35,6 +35,7 @@ describe("computeBar", () => {
     expect(bar.startCol).toBe(TODAY_COL);
     expect(bar.span).toBe(1);
     expect(bar.clipRight).toBe(false);
+    expect(bar.clipLeft).toBe(false);
   });
 
   it("期限=今日+5 は今日列から6セル帯", () => {
@@ -117,6 +118,12 @@ describe("buildGanttRows", () => {
     const issues = [mkIssue({ id: 1, issueKey: "PRJB-1", summary: "b", projectId: 20, dueDate: "2026-06-12" })];
     const model = buildGanttRows(issues, [], projects, TODAY);
     expect(model.groups.some((g) => g.groupName === "PRJB")).toBe(true);
+  });
+
+  it("projects が空でも #id でグループ化できる", () => {
+    const issues = [mkIssue({ id: 1, issueKey: "X-1", summary: "x", projectId: 99, dueDate: "2026-06-12" })];
+    const model = buildGanttRows(issues, [], [], TODAY);
+    expect(model.groups.some((g) => g.groupName === "プロジェクト #99")).toBe(true);
   });
 
   it("完了済みローカルタスクは除外（呼び出し側で未完了のみ渡す前提でも防御）", () => {
