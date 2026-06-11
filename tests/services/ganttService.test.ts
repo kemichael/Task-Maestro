@@ -133,6 +133,19 @@ describe("buildGanttRows", () => {
     expect(model.undated.length).toBe(0);
   });
 
+  it("完了済み Backlog チケットは除外（status.id=4 / 完了系の名前）", () => {
+    const issues = [
+      mkIssue({ id: 1, issueKey: "PROJECT_A-1", summary: "完了ID", projectId: 10, dueDate: "2026-06-12", status: { id: 4, name: "完了" } }),
+      mkIssue({ id: 2, issueKey: "PROJECT_A-2", summary: "完了名", projectId: 10, dueDate: "2026-06-13", status: { id: 99, name: "Done" } }),
+      mkIssue({ id: 3, issueKey: "PROJECT_A-3", summary: "完了かつ期限なし", projectId: 10, status: { id: 4, name: "完了" } }),
+      mkIssue({ id: 4, issueKey: "PROJECT_A-4", summary: "未完了", projectId: 10, dueDate: "2026-06-14", status: { id: 2, name: "処理中" } }),
+    ];
+    const model = buildGanttRows(issues, [], projects, TODAY);
+    const titles = model.groups.flatMap((g) => g.rows.map((r) => r.title));
+    expect(titles).toEqual(["未完了"]);
+    expect(model.undated.length).toBe(0);
+  });
+
   it("期限なしは undated へ振り分け", () => {
     const issues = [mkIssue({ id: 1, issueKey: "PROJECT_A-1", summary: "未定", projectId: 10 })];
     const model = buildGanttRows(issues, [], projects, TODAY);
