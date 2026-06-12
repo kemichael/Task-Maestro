@@ -2425,3 +2425,204 @@ textarea:focus {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* =============================================================
+   EventEditModal
+   ============================================================= */
+
+.event-edit-modal__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.event-edit-modal {
+  background: var(--color-surface);
+  border: 1px solid var(--color-accent);
+  color: var(--color-text);
+  width: min(560px, 92vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: var(--spacing-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  font-family: var(--font-mono);
+}
+
+.event-edit-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.event-edit-modal__header h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  font-size: 14px;
+}
+
+.event-edit-modal__close {
+  background: transparent;
+  border: none;
+  color: var(--color-text);
+  font-size: 20px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.event-edit-modal__error {
+  background: rgba(220, 50, 50, 0.15);
+  border: 1px solid #d04444;
+  color: #ffd0d0;
+  padding: var(--spacing-2);
+  font-size: 12px;
+}
+
+.event-edit-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.event-edit-modal__field > span {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-accent);
+  font-size: 10px;
+}
+
+.event-edit-modal__field input,
+.event-edit-modal__field textarea {
+  background: var(--color-surface-muted, #1a1a1a);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  padding: 6px 8px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.event-edit-modal__field textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.event-edit-modal__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-2);
+}
+
+.event-edit-modal__color-fieldset {
+  border: 1px solid var(--color-border);
+  padding: var(--spacing-2);
+}
+
+.event-edit-modal__color-fieldset legend {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-accent);
+  font-size: 10px;
+  padding: 0 4px;
+}
+
+.event-edit-modal__color-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 28px);
+  gap: 8px;
+}
+
+.event-edit-modal__color-button {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+.event-edit-modal__color-button.is-selected {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.event-edit-modal__color-default-mark {
+  color: var(--color-text);
+  font-size: 14px;
+  line-height: 1;
+}
+
+.event-edit-modal__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.event-edit-modal__footer-left,
+.event-edit-modal__footer-right {
+  display: flex;
+  gap: var(--spacing-2);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.event-edit-modal__footer button {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  padding: 6px 10px;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.event-edit-modal__footer button:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.event-edit-modal__footer button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.event-edit-modal__primary {
+  border-color: var(--color-accent) !important;
+  color: var(--color-accent) !important;
+}
+
+.event-edit-modal__danger {
+  border-color: #d04444 !important;
+  color: #ffaaaa !important;
+}
+
+.event-edit-modal__confirm {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 12px;
+}
+
+.event-edit-modal__external {
+  color: var(--color-accent);
+  text-decoration: none;
+  font-size: 12px;
+}
+
+.event-edit-modal__external:hover {
+  text-decoration: underline;
+}

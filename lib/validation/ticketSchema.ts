@@ -38,11 +38,16 @@ export const patchIssueSchema = z.object({
 
 export type PatchIssueInput = z.infer<typeof patchIssueSchema>;
 
+export const googleEventColorIdSchema = z.enum([
+  "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11",
+]);
+
 export const calendarEventCreateSchema = z.object({
   title: z.string().min(1).max(255),
   start: z.string().min(1),
   end: z.string().optional(),
   description: z.string().optional(),
+  colorId: googleEventColorIdSchema.optional(),
 });
 
 export const calendarEventPatchSchema = z.object({
@@ -50,4 +55,5 @@ export const calendarEventPatchSchema = z.object({
   start: z.string().optional(),
   end: z.string().optional(),
   description: z.string().optional(),
+  colorId: googleEventColorIdSchema.nullable().optional(),
 });
