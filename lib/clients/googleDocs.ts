@@ -10,13 +10,21 @@ interface DocElement {
 interface DocStructural {
   paragraph?: { elements?: DocElement[] };
 }
+interface DocBody {
+  content?: DocStructural[];
+}
+interface DocTab {
+  documentTab?: { body?: DocBody };
+  childTabs?: DocTab[];
+}
 interface DocLike {
-  body?: { content?: DocStructural[] };
+  body?: DocBody;
+  tabs?: DocTab[];
 }
 
-/** Docs API の document レスポンスをプレーンテキストに変換する純粋関数 */
-export function flattenDocumentText(doc: DocLike): string {
-  const content = doc.body?.content ?? [];
+/** 1 つの body 配下の textRun を連結する */
+function flattenBody(body: DocBody | undefined): string {
+  const content = body?.content ?? [];
   let out = "";
   for (const block of content) {
     const elements = block.paragraph?.elements ?? [];
@@ -27,11 +35,32 @@ export function flattenDocumentText(doc: DocLike): string {
   return out;
 }
 
+/** タブ (子タブ含む) を再帰的に連結する */
+function flattenTab(tab: DocTab): string {
+  let out = flattenBody(tab.documentTab?.body);
+  for (const child of tab.childTabs ?? []) {
+    out += flattenTab(child);
+  }
+  return out;
+}
+
+/**
+ * Docs API の document レスポンスをプレーンテキストに変換する純粋関数。
+ * タブ付きドキュメント (tabs[]) は各タブの本文を連結する。
+ */
+export function flattenDocumentText(doc: DocLike): string {
+  if (doc.tabs && doc.tabs.length > 0) {
+    return doc.tabs.map(flattenTab).join("\n");
+  }
+  return flattenBody(doc.body);
+}
+
 /** documentId から本文プレーンテキストを取得する */
 export async function getDocumentText(documentId: string): Promise<string> {
   try {
     const docs = google.docs({ version: "v1", auth: getOAuth2Client() });
-    const res = await docs.documents.get({ documentId });
+    // includeTabsContent: タブ付きドキュメントの全タブ本文を取得する
+    const res = await docs.documents.get({ documentId, includeTabsContent: true });
     return flattenDocumentText(res.data as DocLike);
   } catch (error) {
     const e = error as { code?: number; message?: string };

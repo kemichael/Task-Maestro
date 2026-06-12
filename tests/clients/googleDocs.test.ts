@@ -23,4 +23,23 @@ describe("flattenDocumentText", () => {
   it("body が無ければ空文字", () => {
     expect(flattenDocumentText({})).toBe("");
   });
+  it("タブ付きドキュメントは tabs 配下の本文を連結する", () => {
+    const doc = {
+      tabs: [
+        {
+          documentTab: {
+            body: { content: [{ paragraph: { elements: [{ textRun: { content: "タブ1本文" } }] } }] },
+          },
+          childTabs: [
+            {
+              documentTab: {
+                body: { content: [{ paragraph: { elements: [{ textRun: { content: "子タブ本文" } }] } }] },
+              },
+            },
+          ],
+        },
+      ],
+    };
+    expect(flattenDocumentText(doc)).toBe("タブ1本文子タブ本文");
+  });
 });
