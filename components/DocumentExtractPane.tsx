@@ -69,16 +69,40 @@ export default function DocumentExtractPane() {
     setError(null);
     try {
       const targets = candidates.filter((c) => c.selected && c.projectId);
-      for (const c of targets) {
-        await postJson("/api/backlog/issues", {
-          projectId: Number(c.projectId),
-          summary: c.title,
-          description: c.body ? `${c.body}\n\n${docUrl}` : docUrl,
-          dueDate: c.suggested_due,
-          sourceMeta: { kind: "document", ref: docUrl },
-        });
+      if (targets.length === 0) {
+        setError("チケット化する候補を選択し、プロジェクト ID を入力してください");
+        return;
       }
-      setError(`${targets.length} 件のチケットを作成しました`);
+      const invalid = targets.filter(
+        (c) => c.suggested_due && !/^\d{4}-\d{2}-\d{2}$/.test(c.suggested_due),
+      );
+      if (invalid.length > 0) {
+        setError(`期限は YYYY-MM-DD 形式で入力してください (${invalid.length} 件が不正)`);
+        return;
+      }
+      const results = await Promise.allSettled(
+        targets.map((c) =>
+          postJson("/api/backlog/issues", {
+            projectId: Number(c.projectId),
+            summary: c.title,
+            description: c.body ? `${c.body}\n\n${docUrl}` : docUrl,
+            dueDate: c.suggested_due,
+            sourceMeta: { kind: "document", ref: docUrl },
+          }),
+        ),
+      );
+      const succeeded = new Set(
+        targets.filter((_, i) => results[i].status === "fulfilled"),
+      );
+      const okCount = succeeded.size;
+      const failed = results.length - okCount;
+      // 成功した候補はリストから除去し、再実行による重複作成を防ぐ
+      setCandidates((prev) => prev.filter((c) => !succeeded.has(c)));
+      setError(
+        failed === 0
+          ? `${okCount} 件のチケットを作成しました`
+          : `${okCount} 件成功 / ${failed} 件失敗しました。失敗分はリストに残っています`,
+      );
     } catch (e) {
       setError((e as Error).message);
     } finally {

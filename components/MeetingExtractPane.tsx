@@ -77,20 +77,43 @@ export default function MeetingExtractPane() {
       const active = meetings.find((m) => m.id === activeId);
       const ref = active?.docUrl ?? "";
       const targets = candidates.filter((c) => c.selected && c.projectId);
-      for (const c of targets) {
-        await postJson("/api/backlog/issues", {
-          projectId: Number(c.projectId),
-          summary: c.title,
-          description: c.body ? `${c.body}\n\n${ref}` : ref,
-          dueDate: c.suggested_due,
-          sourceMeta: { kind: "meeting", ref },
-        });
+      if (targets.length === 0) {
+        setError("チケット化する候補を選択し、プロジェクト ID を入力してください");
+        return;
+      }
+      const invalid = targets.filter(
+        (c) => c.suggested_due && !/^\d{4}-\d{2}-\d{2}$/.test(c.suggested_due),
+      );
+      if (invalid.length > 0) {
+        setError(`期限は YYYY-MM-DD 形式で入力してください (${invalid.length} 件が不正)`);
+        return;
+      }
+      const results = await Promise.allSettled(
+        targets.map((c) =>
+          postJson("/api/backlog/issues", {
+            projectId: Number(c.projectId),
+            summary: c.title,
+            description: c.body ? `${c.body}\n\n${ref}` : ref,
+            dueDate: c.suggested_due,
+            sourceMeta: { kind: "meeting", ref },
+          }),
+        ),
+      );
+      const succeeded = new Set(
+        targets.filter((_, i) => results[i].status === "fulfilled"),
+      );
+      const failed = results.length - succeeded.size;
+      if (failed > 0) {
+        // 成功分を除去して残し、議事録は未処理のままにする (再実行で重複させない)
+        setCandidates((prev) => prev.filter((c) => !succeeded.has(c)));
+        setError(`${succeeded.size} 件成功 / ${failed} 件失敗。失敗分を確認してください (議事録は未処理のまま)`);
+        return;
       }
       await postJson(`/api/meetings/${activeId}`);
       setCandidates([]);
       setActiveId(null);
       await loadMeetings();
-      setError(`${targets.length} 件のチケットを作成し、議事録を処理済みにしました`);
+      setError(`${succeeded.size} 件のチケットを作成し、議事録を処理済みにしました`);
     } catch (e) {
       setError((e as Error).message);
     } finally {
