@@ -12,18 +12,22 @@ import type {
   EventInput,
   EventReceiveArg,
 } from "@fullcalendar/core";
+import { resolveEventColor } from "@/lib/constants/googleEventColors";
+import type { CalendarEvent, GoogleEventColorId } from "@/lib/types/calendar";
+import { EventEditModal } from "./EventEditModal";
 
-async function fetchEvents(from: string, to: string): Promise<EventInput[]> {
+async function fetchEvents(from: string, to: string): Promise<CalendarEvent[]> {
   const res = await fetch(`/api/google/calendar/events?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`);
   if (!res.ok) {
     throw new Error(`カレンダー取得に失敗 (${res.status})`);
   }
-  return (await res.json()) as EventInput[];
+  return (await res.json()) as CalendarEvent[];
 }
 
 export function CalendarPane() {
   const calendarRef = useRef<FullCalendar | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
 
   // FullCalendar の Draggable を初期化 (document.body を監視して .today-item / .issue-card / .local-task-item を D&D 可能化)
   // インライン編集中のメモタスク (.local-task-item.is-editing) は、入力欄が onPointerDown の
@@ -114,16 +118,22 @@ export function CalendarPane() {
     }
   }, []);
 
-  const handleEventClick = useCallback(async (arg: EventClickArg) => {
-    if (!confirm(`「${arg.event.title}」を削除しますか？`)) return;
-    setError(null);
-    try {
-      const res = await fetch(`/api/google/calendar/events/${arg.event.id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error(`予定削除失敗 (${res.status})`);
-      arg.event.remove();
-    } catch (e) {
-      setError((e as Error).message);
-    }
+  const handleEventClick = useCallback((arg: EventClickArg) => {
+    const ev = arg.event;
+    const colorIdRaw = ev.extendedProps.colorId;
+    const colorId =
+      typeof colorIdRaw === "string" && /^([1-9]|1[01])$/.test(colorIdRaw)
+        ? (colorIdRaw as GoogleEventColorId)
+        : undefined;
+    setEditingEvent({
+      id: ev.id,
+      title: ev.title,
+      start: ev.start?.toISOString() ?? "",
+      end: ev.end?.toISOString() ?? "",
+      description: (ev.extendedProps.description as string | undefined) ?? undefined,
+      htmlLink: (ev.extendedProps.htmlLink as string | undefined) ?? undefined,
+      colorId,
+    });
   }, []);
 
   const handleSelect = useCallback(async (arg: DateSelectArg) => {
@@ -169,7 +179,24 @@ export function CalendarPane() {
         events={async (info, success, failure) => {
           try {
             const events = await fetchEvents(info.start.toISOString(), info.end.toISOString());
-            success(events);
+            const inputs: EventInput[] = events.map((e) => {
+              const c = resolveEventColor(e.colorId);
+              return {
+                id: e.id,
+                title: e.title,
+                start: e.start,
+                end: e.end,
+                backgroundColor: c.background,
+                borderColor: c.background,
+                textColor: c.foreground,
+                extendedProps: {
+                  description: e.description,
+                  htmlLink: e.htmlLink,
+                  colorId: e.colorId,
+                },
+              };
+            });
+            success(inputs);
           } catch (e) {
             setError((e as Error).message);
             failure(e as Error);
@@ -189,6 +216,20 @@ export function CalendarPane() {
         slotMinTime="07:00:00"
         slotMaxTime="22:00:00"
       />
+      {editingEvent && (
+        <EventEditModal
+          event={editingEvent}
+          onClose={() => setEditingEvent(null)}
+          onSaved={() => {
+            setEditingEvent(null);
+            calendarRef.current?.getApi().refetchEvents();
+          }}
+          onDeleted={() => {
+            setEditingEvent(null);
+            calendarRef.current?.getApi().refetchEvents();
+          }}
+        />
+      )}
     </div>
   );
 }
