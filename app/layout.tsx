@@ -57,6 +57,8 @@ export default function RootLayout({
             <Link href="/kanban">カンバン</Link>
             <Link href="/gantt">ガント</Link>
             <Link href="/issues">チケット一覧</Link>
+            <Link href="/documents">ドキュメント</Link>
+            <Link href="/meetings">議事録</Link>
             <Link href="/manual">マニュアル</Link>
             <Link href="/settings">設定</Link>
           </nav>

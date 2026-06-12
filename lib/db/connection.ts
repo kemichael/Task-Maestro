@@ -20,9 +20,21 @@ function ensureDir(dir: string) {
   }
 }
 
+/**
+ * 接続先 DB パスを解決する。
+ * TASK_MAESTRO_DB_PATH が設定されていればそれを優先する (テスト用の一時 DB 等)。
+ * 未設定時は従来通り data/task-maestro.sqlite を使う。
+ */
+function resolveDbPath(): string {
+  return process.env.TASK_MAESTRO_DB_PATH || DB_PATH;
+}
+
 function openDatabase(): DatabaseType {
-  ensureDir(DB_DIR);
-  const db = new Database(DB_PATH);
+  const dbPath = resolveDbPath();
+  if (dbPath !== ":memory:") {
+    ensureDir(path.dirname(dbPath));
+  }
+  const db = new Database(dbPath);
   db.pragma("journal_mode = WAL");
   db.pragma("foreign_keys = ON");
   return db;

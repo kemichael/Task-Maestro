@@ -196,6 +196,15 @@ docker compose --profile dev exec task-maestro-dev node -e "const Database = req
 
 設定は保持されます。
 
+### 5.6 ドキュメント / 議事録の抽出が失敗する
+
+- **「Google Docs の認証に失敗」「Drive スコープ不足」と表示される**:
+  `GOOGLE_REFRESH_TOKEN` に `documents.readonly` / `drive.readonly` スコープが含まれていません。
+  5.3 と同じ手順で **3 つのスコープ** を全部入れて Refresh Token を取り直してください。
+- **「OPENAI_API_KEY が未設定」「CLAUDE_CODE_PATH が未設定」と表示される**:
+  設定画面で選択中の AI プロバイダに対応する認証情報が未設定です。`.env.local` に該当キーを設定するか、
+  設定画面でもう一方のプロバイダへ切り替えてください。
+
 ---
 
 ## 付録: 認証情報の取得方法
@@ -241,4 +250,5 @@ docker compose --profile dev exec task-maestro-dev node -e "const Database = req
 - `docs/memo-flow/04_test_report.md` — テストレポート
 - `docs/memo-flow/05_review_report.md` — レビューレポート
 
-MVP 範囲外の機能 (BD-001 Slack / BD-002 議事録 / BD-007 Docs取込 / BD-009 AI プロバイダ / BD-101 AI 抽出) は将来追加予定です。
+BD-002 議事録 / BD-007 Docs 取込 / BD-009 AI プロバイダ / BD-101 AI 抽出 はナビの「ドキュメント」「議事録」から利用できます。
+BD-001 Slack 連携は将来追加予定です。
