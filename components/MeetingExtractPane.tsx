@@ -28,11 +28,24 @@ async function postJson<T>(url: string, body?: unknown): Promise<T> {
   return data as T;
 }
 
+/** ISO 文字列を読みやすい日時に整形する (失敗時はそのまま返す) */
+function formatOccurredAt(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleString("ja-JP", {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export default function MeetingExtractPane({ projects }: Props) {
   const [meetings, setMeetings] = useState<MeetingDoc[]>([]);
   const [activeId, setActiveId] = useState<number | null>(null);
   const [candidates, setCandidates] = useState<TicketCandidate[]>([]);
   const [busy, setBusy] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const loadMeetings = useCallback(async () => {
@@ -45,6 +58,7 @@ export default function MeetingExtractPane({ projects }: Props) {
       setError((e as Error).message);
     } finally {
       setBusy(false);
+      setLoaded(true);
     }
   }, []);
 
@@ -80,17 +94,44 @@ export default function MeetingExtractPane({ projects }: Props) {
 
   return (
     <div className="meeting-pane">
-      {error && <p className="extract-error" role="alert">{error}</p>}
-      <button onClick={loadMeetings} disabled={busy}>議事録を再検出</button>
+      <div className="meeting-toolbar">
+        <span className="meeting-toolbar__count">
+          未処理 <em>{meetings.length}</em> 件
+        </span>
+        <button className="secondary-btn" onClick={loadMeetings} disabled={busy}>
+          {busy ? "検出中…" : "↻ 議事録を再検出"}
+        </button>
+      </div>
+
+      {error && <p className="error-banner" role="alert">{error}</p>}
 
       <ul className="meeting-list">
-        {meetings.length === 0 && <li>未処理の議事録はありません。</li>}
+        {loaded && meetings.length === 0 && (
+          <li className="console-empty">未処理の議事録はありません。</li>
+        )}
         {meetings.map((m) => (
-          <li key={m.id} className="meeting-item">
-            <span>{m.title}</span>
-            <span className="meeting-date">{m.occurredAt}</span>
-            {m.docUrl && <a href={m.docUrl} target="_blank" rel="noreferrer">議事録</a>}
-            <button onClick={() => handleExtract(m.id)} disabled={busy}>抽出</button>
+          <li
+            key={m.id}
+            className={`meeting-card card${activeId === m.id ? " is-active" : ""}`}
+          >
+            <div className="meeting-card__main">
+              <span className="meeting-card__title">{m.title}</span>
+              <span className="meeting-card__meta">
+                <span className="meeting-card__date">{formatOccurredAt(m.occurredAt)}</span>
+                {m.docUrl && (
+                  <a className="meeting-card__link" href={m.docUrl} target="_blank" rel="noreferrer">
+                    議事録 ↗
+                  </a>
+                )}
+              </span>
+            </div>
+            <button
+              className={activeId === m.id ? "primary-btn" : "secondary-btn"}
+              onClick={() => handleExtract(m.id)}
+              disabled={busy}
+            >
+              抽出
+            </button>
           </li>
         ))}
       </ul>

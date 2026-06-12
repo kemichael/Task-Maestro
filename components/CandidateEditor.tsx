@@ -25,6 +25,8 @@ interface Props {
   onAllCreated?: () => void | Promise<void>;
 }
 
+type Tone = "ok" | "error";
+
 async function postJson(url: string, body: unknown): Promise<void> {
   const res = await fetch(url, {
     method: "POST",
@@ -48,12 +50,18 @@ export default function CandidateEditor({
   const [rows, setRows] = useState<EditableRow[]>([]);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [tone, setTone] = useState<Tone>("ok");
 
   // 新しい候補が来たら編集状態を作り直す
   useEffect(() => {
     setRows(candidates.map((c) => ({ ...c, selected: true, dest: "" })));
     setMessage(null);
   }, [candidates]);
+
+  function notify(text: string, t: Tone) {
+    setMessage(text);
+    setTone(t);
+  }
 
   function update(idx: number, patch: Partial<EditableRow>) {
     setRows((prev) => prev.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
@@ -87,14 +95,14 @@ export default function CandidateEditor({
     try {
       const targets = rows.filter((r) => r.selected && r.dest);
       if (targets.length === 0) {
-        setMessage("登録する候補を選び、登録先を指定してください");
+        notify("登録する候補を選び、登録先を指定してください", "error");
         return;
       }
       const invalidDate = targets.filter(
         (r) => r.suggested_due && !/^\d{4}-\d{2}-\d{2}$/.test(r.suggested_due),
       );
       if (invalidDate.length > 0) {
-        setMessage(`期限の形式が不正です (${invalidDate.length} 件)`);
+        notify(`期限の形式が不正です (${invalidDate.length} 件)`, "error");
         return;
       }
       const results = await Promise.allSettled(targets.map((r) => createOne(r)));
@@ -103,68 +111,110 @@ export default function CandidateEditor({
       // 成功分はリストから除去し、再実行による重複登録を防ぐ
       setRows((prev) => prev.filter((r) => !succeeded.has(r)));
       if (failed === 0) {
-        setMessage(`${succeeded.size} 件を登録しました`);
+        notify(`${succeeded.size} 件を登録しました`, "ok");
         if (onAllCreated) await onAllCreated();
       } else {
-        setMessage(`${succeeded.size} 件成功 / ${failed} 件失敗しました。失敗分はリストに残っています`);
+        notify(`${succeeded.size} 件成功 / ${failed} 件失敗しました。失敗分はリストに残っています`, "error");
       }
     } catch (e) {
-      setMessage((e as Error).message);
+      notify((e as Error).message, "error");
     } finally {
       setBusy(false);
     }
   }
 
+  const selectedCount = rows.filter((r) => r.selected && r.dest).length;
+
   return (
-    <div className="candidate-editor">
-      {message && <p className="extract-error" role="status">{message}</p>}
-      {rows.length === 0 && <p>{emptyMessage}</p>}
-      {rows.map((r, i) => (
-        <div key={i} className="candidate-row">
-          <input
-            type="checkbox"
-            checked={r.selected}
-            onChange={(e) => update(i, { selected: e.target.checked })}
-            aria-label="登録対象"
-          />
-          <input
-            value={r.title}
-            onChange={(e) => update(i, { title: e.target.value })}
-            aria-label="タイトル"
-            placeholder="タイトル"
-          />
-          <select
-            value={r.dest}
-            onChange={(e) => update(i, { dest: e.target.value })}
-            aria-label="登録先"
-          >
-            <option value="">登録先…</option>
-            <option value="today">今日やる (メモタスク)</option>
-            {projects.map((p) => (
-              <option key={p.projectId} value={`bl:${p.projectId}`}>
-                {p.name ?? p.projectKey ?? `Project ${p.projectId}`}
-              </option>
-            ))}
-          </select>
-          <input
-            type="date"
-            value={r.suggested_due ?? ""}
-            onChange={(e) => update(i, { suggested_due: e.target.value || undefined })}
-            aria-label="期限"
-          />
-          <textarea
-            value={r.body ?? ""}
-            onChange={(e) => update(i, { body: e.target.value || undefined })}
-            aria-label="概要"
-            placeholder="概要 (Backlog の本文 / メモタスクの内容に登録されます)"
-            rows={2}
-          />
+    <div className="candidate-console">
+      {message && (
+        <p className={tone === "error" ? "error-banner" : "info-banner"} role="status">
+          {message}
+        </p>
+      )}
+
+      {rows.length === 0 ? (
+        <div className="console-empty">{emptyMessage}</div>
+      ) : (
+        <div className="candidate-grid">
+          {rows.map((r, i) => (
+            <article
+              key={i}
+              className={`candidate-card${r.selected ? "" : " is-off"}`}
+              style={{ animationDelay: `${i * 45}ms` }}
+            >
+              <header className="candidate-card__head">
+                <label className="candidate-check" title="登録対象に含める">
+                  <input
+                    type="checkbox"
+                    checked={r.selected}
+                    onChange={(e) => update(i, { selected: e.target.checked })}
+                    aria-label="登録対象"
+                  />
+                  <span className="candidate-index">{String(i + 1).padStart(2, "0")}</span>
+                </label>
+                <input
+                  className="candidate-title"
+                  value={r.title}
+                  onChange={(e) => update(i, { title: e.target.value })}
+                  aria-label="タイトル"
+                  placeholder="タスクのタイトル"
+                />
+              </header>
+
+              <div className="candidate-fields">
+                <div className="form-field">
+                  <span className="form-field-label">登録先</span>
+                  <select
+                    value={r.dest}
+                    onChange={(e) => update(i, { dest: e.target.value })}
+                    aria-label="登録先"
+                    className={r.dest ? "" : "is-unset"}
+                  >
+                    <option value="">— 選択 —</option>
+                    <option value="today">★ 今日やる (メモタスク)</option>
+                    {projects.map((p) => (
+                      <option key={p.projectId} value={`bl:${p.projectId}`}>
+                        {p.name ?? p.projectKey ?? `Project ${p.projectId}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-field">
+                  <span className="form-field-label">期限</span>
+                  <input
+                    type="date"
+                    value={r.suggested_due ?? ""}
+                    onChange={(e) => update(i, { suggested_due: e.target.value || undefined })}
+                    aria-label="期限"
+                  />
+                </div>
+              </div>
+
+              <div className="form-field candidate-summary">
+                <span className="form-field-label">概要</span>
+                <textarea
+                  value={r.body ?? ""}
+                  onChange={(e) => update(i, { body: e.target.value || undefined })}
+                  aria-label="概要"
+                  placeholder="Backlog の本文 / メモタスクの内容に登録されます"
+                  rows={2}
+                />
+              </div>
+            </article>
+          ))}
         </div>
-      ))}
+      )}
+
       {rows.length > 0 && (
-        <button onClick={handleCreate} disabled={busy}>
-          選択を登録
-        </button>
+        <div className="console-actions">
+          <span className="console-count">
+            <em>{selectedCount}</em> / {rows.length} 件を登録
+          </span>
+          <button className="primary-btn" onClick={handleCreate} disabled={busy || selectedCount === 0}>
+            {busy ? "登録中…" : "選択を登録"}
+          </button>
+        </div>
       )}
     </div>
   );
