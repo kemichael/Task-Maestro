@@ -16,6 +16,7 @@ type DriveSearchFn = (nameContains: string) => Promise<DriveFileLite[]>;
 interface EventLike {
   title: string;
   attachments?: CalendarEventAttachment[];
+  start?: string;
 }
 
 /** 予定から documentId を解決する。添付優先、無ければ Drive 検索。検索関数を注入して純粋に保つ */
@@ -23,7 +24,7 @@ export async function resolveDocId(event: EventLike, search: DriveSearchFn): Pro
   const fromAtt = docIdFromAttachments(event.attachments ?? []);
   if (fromAtt) return fromAtt;
   const files = await search(event.title);
-  return pickDriveMatch(event.title, files)?.id ?? null;
+  return pickDriveMatch(event.title, files, event.start)?.id ?? null;
 }
 
 function docUrl(documentId: string): string {
@@ -40,7 +41,7 @@ export async function detectMeetingDocs(): Promise<MeetingDoc[]> {
   const events = await listEvents(from.toISOString(), now.toISOString());
   for (const ev of events) {
     if (ev.attended === false) continue;
-    const documentId = await resolveDocId({ title: ev.title, attachments: ev.attachments }, searchDocs);
+    const documentId = await resolveDocId({ title: ev.title, attachments: ev.attachments, start: ev.start }, searchDocs);
     if (!documentId) continue;
     upsertMeetingDoc({
       calendarEventId: ev.id,

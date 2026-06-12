@@ -25,4 +25,11 @@ describe("pickDriveMatch", () => {
   it("マッチが無ければ null", () => {
     expect(pickDriveMatch("存在しない会議", files)).toBeNull();
   });
+  it("eventStart に modifiedTime が最も近い候補を選ぶ", () => {
+    const dated = [
+      { id: "old", name: "定例 議事録", modifiedTime: "2026-06-01T00:00:00Z" },
+      { id: "near", name: "定例 議事録", modifiedTime: "2026-06-10T00:00:00Z" },
+    ];
+    expect(pickDriveMatch("定例", dated, "2026-06-10T01:00:00Z")?.id).toBe("near");
+  });
 });
