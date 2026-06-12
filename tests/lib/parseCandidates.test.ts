@@ -16,6 +16,10 @@ describe("parseCandidates", () => {
     expect(parseCandidates('{"candidates":[{"title":"B"}]}')).toEqual([{ title: "B" }]);
   });
 
+  it("JSON モードで任意キーにラップされた配列をフォールバックで取り出す", () => {
+    expect(parseCandidates('{"tasks":[{"title":"C"}]}')).toEqual([{ title: "C" }]);
+  });
+
   it("不正 JSON は AiProviderError を投げる", () => {
     expect(() => parseCandidates("これは JSON ではない")).toThrow(AiProviderError);
   });
