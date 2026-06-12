@@ -24,6 +24,15 @@ function toCalendarEvent(
   const end = api.end?.dateTime ?? api.end?.date ?? "";
   const rawColorId = api.colorId ?? undefined;
   const colorId = isGoogleEventColorId(rawColorId) ? rawColorId : undefined;
+  const attachments = (api.attachments ?? []).map((a: Record<string, unknown>) => ({
+    fileId: (a.fileId as string | undefined) ?? undefined,
+    fileUrl: (a.fileUrl as string | undefined) ?? undefined,
+    title: (a.title as string | undefined) ?? undefined,
+    mimeType: (a.mimeType as string | undefined) ?? undefined,
+  }));
+  const attended =
+    (api.organizer as { self?: boolean } | undefined)?.self === true ||
+    (api.attendees ?? []).some((at: Record<string, unknown>) => (at.self as boolean | undefined) === true);
   return {
     id: api.id ?? "",
     title: api.summary ?? "(無題)",
@@ -32,6 +41,8 @@ function toCalendarEvent(
     description: api.description ?? undefined,
     htmlLink: api.htmlLink ?? undefined,
     colorId,
+    attachments,
+    attended,
   };
 }
 
