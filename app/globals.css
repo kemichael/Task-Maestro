@@ -2426,6 +2426,140 @@ textarea:focus {
   }
 }
 
+/* ===== ガントチャート ===== */
+.gantt {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  overflow-x: auto;
+}
+.gantt-row {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border);
+}
+.gantt-row--header {
+  position: sticky;
+  top: 0;
+  background: var(--color-surface-alt);
+  z-index: 1;
+}
+.gantt-label {
+  padding: 6px 10px;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-right: 1px solid var(--color-border);
+}
+.gantt-label--header {
+  border-right: 1px solid var(--color-border);
+}
+.gantt-key {
+  color: var(--color-cyan);
+  font-family: var(--font-mono-google), monospace;
+  margin-right: 6px;
+  font-size: 11px;
+}
+.gantt-title {
+  color: var(--color-text);
+}
+.gantt-timeline {
+  display: grid;
+  position: relative;
+  min-height: 28px;
+  align-items: center;
+}
+.gantt-day {
+  text-align: center;
+  font-size: 10px;
+  color: var(--color-text-muted);
+  padding: 4px 0;
+  border-left: 1px solid var(--color-border);
+}
+.gantt-day--past {
+  color: var(--color-text-subtle);
+  background: var(--color-surface-muted);
+}
+.gantt-day--weekend {
+  background: var(--color-surface-muted);
+}
+.gantt-day--today {
+  color: var(--color-text-on-yellow);
+  background: var(--color-accent);
+  font-weight: 600;
+}
+.gantt-bar {
+  height: 16px;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  overflow: hidden;
+  position: relative;
+}
+.gantt-bar--normal {
+  background: var(--color-accent);
+  color: var(--color-text-on-yellow);
+}
+.gantt-bar--overdue {
+  background: var(--color-magenta);
+  color: #fff;
+}
+.gantt-bar-label {
+  white-space: nowrap;
+  padding: 0 4px;
+}
+.gantt-clip {
+  font-size: 10px;
+  line-height: 1;
+}
+/* 範囲外マーカーを帯の端に張り付ける（◂=左端 / ▸=右端） */
+.gantt-clip--left {
+  margin-right: auto;
+}
+.gantt-clip--right {
+  margin-left: auto;
+}
+/* プロジェクトグループ間に区切りの余白を設ける */
+.gantt-group {
+  border-bottom: 1px solid var(--color-border-strong);
+}
+.gantt-group-head {
+  padding: 6px 10px;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--color-accent);
+  background: var(--color-surface-alt);
+  border-bottom: 1px solid var(--color-border);
+}
+.gantt-empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--color-text-muted);
+}
+.gantt-undated {
+  padding: 10px 12px;
+  border-top: 1px solid var(--color-border-strong);
+}
+.gantt-undated-head {
+  font-size: 12px;
+  color: var(--color-orange-warn);
+  margin-bottom: 6px;
+}
+.gantt-undated ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+}
+.gantt-undated li {
+  font-size: 12px;
+}
+
 /* =============================================================
    EventEditModal
    ============================================================= */
