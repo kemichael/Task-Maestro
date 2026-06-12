@@ -3,6 +3,7 @@ import type { AIProvider, ExtractionInput } from "../../types/ai";
 import type { TicketCandidate } from "../../types/ticket";
 import { getEnv } from "../../env";
 import { AiProviderError } from "../../errors";
+import { logger } from "../../logger";
 import { buildExtractionPrompt } from "./buildExtractionPrompt";
 import { parseCandidates } from "./parseCandidates";
 
@@ -31,7 +32,13 @@ export function createOpenAiProvider(model: string): AIProvider {
       }
       const data = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
       const content = data.choices?.[0]?.message?.content ?? "";
-      return parseCandidates(content);
+      try {
+        return parseCandidates(content);
+      } catch (error) {
+        // パース失敗時は生出力を残して原因を追えるようにする
+        logger.warn({ op: "openai.extract", raw: content.slice(0, 1000) }, "AI 出力のパースに失敗");
+        throw error;
+      }
     },
   };
 }

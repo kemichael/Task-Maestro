@@ -20,6 +20,34 @@ describe("parseCandidates", () => {
     expect(parseCandidates('{"tasks":[{"title":"C"}]}')).toEqual([{ title: "C" }]);
   });
 
+  it("title 以外のキー名 (task/name) も拾う", () => {
+    expect(parseCandidates('[{"task":"X"},{"name":"Y"}]')).toEqual([{ title: "X" }, { title: "Y" }]);
+  });
+
+  it("解釈できない期限は捨てて候補は残す", () => {
+    expect(parseCandidates('[{"title":"A","suggested_due":"来週"}]')).toEqual([{ title: "A" }]);
+  });
+
+  it("YYYY/MM/DD 形式の期限を正規化する", () => {
+    expect(parseCandidates('[{"title":"A","suggested_due":"2026/6/5"}]')).toEqual([
+      { title: "A", suggested_due: "2026-06-05" },
+    ]);
+  });
+
+  it("ISO 日時の期限は日付部分に正規化する", () => {
+    expect(parseCandidates('[{"title":"A","suggested_due":"2026-06-15T09:00:00Z"}]')).toEqual([
+      { title: "A", suggested_due: "2026-06-15" },
+    ]);
+  });
+
+  it("タスクが無い空配列は空を返す (エラーにしない)", () => {
+    expect(parseCandidates('{"candidates":[]}')).toEqual([]);
+  });
+
+  it("title を持つ要素が皆無なら AiProviderError", () => {
+    expect(() => parseCandidates('[{"foo":"bar"}]')).toThrow(AiProviderError);
+  });
+
   it("不正 JSON は AiProviderError を投げる", () => {
     expect(() => parseCandidates("これは JSON ではない")).toThrow(AiProviderError);
   });

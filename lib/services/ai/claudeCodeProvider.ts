@@ -5,6 +5,7 @@ import type { AIProvider, ExtractionInput } from "../../types/ai";
 import type { TicketCandidate } from "../../types/ticket";
 import { getEnv } from "../../env";
 import { AiProviderError } from "../../errors";
+import { logger } from "../../logger";
 import { buildExtractionPrompt } from "./buildExtractionPrompt";
 import { parseCandidates } from "./parseCandidates";
 
@@ -24,7 +25,12 @@ export function createClaudeCodeProvider(): AIProvider {
           ["-p", prompt],
           { maxBuffer: 10 * 1024 * 1024, timeout: 120_000 },
         );
-        return parseCandidates(stdout);
+        try {
+          return parseCandidates(stdout);
+        } catch (parseError) {
+          logger.warn({ op: "claudeCode.extract", raw: stdout.slice(0, 1000) }, "AI 出力のパースに失敗");
+          throw parseError;
+        }
       } catch (error) {
         if (error instanceof AiProviderError) throw error;
         throw new AiProviderError("Claude Code CLI の実行に失敗しました", error);
